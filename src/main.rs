@@ -1,5 +1,6 @@
 mod game_schema_generated;
 
+use std::sync::atomic::{AtomicI32, Ordering};
 use crate::game_schema_generated::users::root_as_user;
 use actix::{Actor, StreamHandler};
 use actix_web::{web, App, Error, HttpRequest, HttpResponse, HttpServer};
@@ -7,9 +8,26 @@ use actix_web_actors::ws;
 use flatbuffers::FlatBufferBuilder;
 use game_schema_generated::users::{finish_user_buffer, User, UserArgs};
 
-/// Define HTTP actor
-struct MyWs;
+// Define a global atomic variable to store the last generated ID
+static NEXT_ID: AtomicI32 = AtomicI32::new(0);
 
+fn generate_new_id() -> i32 {
+    // Fetch the current value of the atomic variable and increment it atomically
+    NEXT_ID.fetch_add(1, Ordering::SeqCst)
+}
+
+/// Define HTTP actor
+struct MyWs {
+    id: i32,
+}
+
+impl MyWs {
+    pub fn new() -> Self {
+        Self {
+            id: generate_new_id()
+        }
+    }
+}
 impl Actor for MyWs {
     type Context = ws::WebsocketContext<Self>;
 }
@@ -25,13 +43,18 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for MyWs {
                 let (name, id) = read_user(&bin[..]);
                 // Show the decoded information:
                 println!(
-                    "{} has id {}. The encoded data is {} bytes long.",
+                    "{} has id {}. The encoded data is {} bytes long. Actor id: {}",
                     name,
                     id,
-                    bin.len()
+                    bin.len(),
+                    self.id
                 );
 
-                ctx.binary(bin)
+                let mut bldr = FlatBufferBuilder::new();
+                let mut bytes: Vec<u8> = Vec::new();
+                make_user(&mut bldr, &mut bytes, name, id);
+
+                ctx.binary(bytes)
             }
             _ => (),
         }
@@ -39,7 +62,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for MyWs {
 }
 
 async fn index(req: HttpRequest, stream: web::Payload) -> Result<HttpResponse, Error> {
-    let resp = ws::start(MyWs {}, &req, stream);
+    let resp = ws::start(MyWs::new(), &req, stream);
     println!("{:?}", resp);
     resp
 }

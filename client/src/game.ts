@@ -48,14 +48,17 @@ function init(): void {
   socket.binaryType = "arraybuffer";
   socket.addEventListener('open', event => {
     console.log('socket open!');
-    const builder = new Builder(0);
-    builder.clear();
-    const offset = User.createUser(builder, builder.createString("Arthur Dent"), BigInt(42));
-    builder.finish(offset);
+    // @ts-ignore
+    window['debug_sendMessage'] = () => {
+      const builder = new Builder(0);
+      builder.clear();
+      const offset = User.createUser(builder, builder.createString("Arthur Dent"), BigInt(42));
+      builder.finish(offset);
 
-    const bytes = builder.asUint8Array();
-    console.log('sending, ', bytes);
-    socket.send(bytes);
+      const bytes = builder.asUint8Array();
+      console.log('sending, ', bytes);
+      socket.send(bytes);
+    };
   });
 
   socket.addEventListener('message', event => {
