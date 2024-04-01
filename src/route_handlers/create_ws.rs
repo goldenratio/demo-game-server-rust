@@ -1,9 +1,21 @@
-use actix_web::{Error, HttpRequest, HttpResponse, web};
+use crate::game_server::game_server::GameServer;
+use crate::game_server::peer::Peer;
+use actix::Addr;
+use actix_web::{web, Error, HttpRequest, HttpResponse};
 use actix_web_actors::ws;
-use crate::game_server::game_server::MyWs;
 
-pub async fn create_ws(req: HttpRequest, stream: web::Payload) -> Result<HttpResponse, Error> {
-    let resp = ws::start(MyWs::new(), &req, stream);
-    println!("{:?}", resp);
-    resp
+pub async fn create_ws(
+    req: HttpRequest,
+    stream: web::Payload,
+    srv: web::Data<Addr<GameServer>>,
+) -> Result<HttpResponse, Error> {
+    let game_server_addr = srv.get_ref().clone();
+    ws::start(
+        Peer {
+            id: 0,
+            game_server_addr: game_server_addr,
+        },
+        &req,
+        stream,
+    )
 }

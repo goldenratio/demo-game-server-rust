@@ -26,10 +26,9 @@ Assets.addBundle('assets', {
 });
 
 Assets.loadBundle('assets')
-  .then(() => init());
+  .then(() => wsInit());
 
-function init(): void {
-
+function wsInit() {
   // const builder = new Builder(0);
   // builder.clear();
   // const offset = User.createUser(builder, builder.createString("Arthur Dent"), BigInt(42));
@@ -44,7 +43,7 @@ function init(): void {
   // console.log(user.id());
 
 
-  const socket = new WebSocket('ws://localhost:8080/ws/');
+  const socket = new WebSocket('ws://localhost:8090/ws');
   socket.binaryType = "arraybuffer";
   socket.addEventListener('open', event => {
     console.log('socket open!');
@@ -69,7 +68,10 @@ function init(): void {
     console.log(user.name());
     console.log(Number(user.id()));
   });
+}
 
+// @ts-ignore
+function init(): void {
 	const world = new World();
 
 	// systems
