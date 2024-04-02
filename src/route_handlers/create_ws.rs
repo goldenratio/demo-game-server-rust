@@ -13,7 +13,7 @@ pub async fn create_ws(
     ws::start(
         Peer {
             id: 0,
-            game_server_addr: game_server_addr,
+            game_server_addr,
         },
         &req,
         stream,

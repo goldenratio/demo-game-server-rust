@@ -1,20 +1,49 @@
-use crate::game_server::game_server::GameServer;
-use actix::{Actor, ActorContext, Addr, StreamHandler};
+use crate::game_server::game_server;
+use actix::{Actor, ActorContext, ActorFutureExt, Addr, ContextFutureSpawner, fut, StreamHandler, WrapFuture};
 use actix_web_actors::ws;
 use actix_web_actors::ws::Message;
 
 pub struct Peer {
     /// unique session id
-    pub id: i32,
+    /// id s assigned when connection is established
+    pub id: usize,
 
     /// game server actor address
-    pub game_server_addr: Addr<GameServer>,
+    pub game_server_addr: Addr<game_server::GameServer>,
 }
 
 impl Peer {}
 
 impl Actor for Peer {
     type Context = ws::WebsocketContext<Self>;
+
+    fn started(&mut self, ctx: &mut Self::Context) {
+        // println!("actor started! id: {:?}", ctx)
+        // register self in chat server. `AsyncContext::wait` register
+        // future within context, but context waits until this future resolves
+        // before processing any other events.
+        // HttpContext::state() is instance of WsChatSessionState, state is shared
+        // across all routes within application
+        // let addr = ctx.address();
+        self.game_server_addr
+            .send(game_server::Connect {})
+            .into_actor(self)
+            .then(|res, act, ctx| {
+                match res {
+                    Ok(res) => {
+                        act.id = res;
+                    },
+                    // something is wrong with chat server
+                    _ => ctx.stop(),
+                }
+                fut::ready(())
+            })
+            .then(|_, act,_| {
+                println!("actor connected! id: {:?}", act.id);
+                fut::ready(())
+            })
+            .wait(ctx);
+    }
 }
 
 impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for Peer {
