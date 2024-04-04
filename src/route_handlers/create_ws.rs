@@ -1,3 +1,4 @@
+use std::time::Instant;
 use crate::game_server::game_server::GameServer;
 use crate::game_server::peer::Peer;
 use actix::Addr;
@@ -13,6 +14,7 @@ pub async fn create_ws(
     ws::start(
         Peer {
             id: 0,
+            heart_beat: Instant::now(),
             game_server_addr,
         },
         &req,

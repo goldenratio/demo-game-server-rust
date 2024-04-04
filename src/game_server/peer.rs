@@ -1,12 +1,14 @@
+use std::time::Instant;
 use crate::game_server::game_server;
-use actix::{Actor, ActorContext, ActorFutureExt, Addr, ContextFutureSpawner, fut, StreamHandler, WrapFuture};
+use actix::{Actor, ActorContext, ActorFutureExt, Addr, AsyncContext, ContextFutureSpawner, fut, Handler, Running, StreamHandler, WrapFuture};
 use actix_web_actors::ws;
-use actix_web_actors::ws::Message;
 
 pub struct Peer {
     /// unique session id
-    /// id s assigned when connection is established
+    /// id is assigned when connection is established
     pub id: usize,
+
+    pub heart_beat: Instant,
 
     /// game server actor address
     pub game_server_addr: Addr<game_server::GameServer>,
@@ -18,15 +20,9 @@ impl Actor for Peer {
     type Context = ws::WebsocketContext<Self>;
 
     fn started(&mut self, ctx: &mut Self::Context) {
-        // println!("actor started! id: {:?}", ctx)
-        // register self in chat server. `AsyncContext::wait` register
-        // future within context, but context waits until this future resolves
-        // before processing any other events.
-        // HttpContext::state() is instance of WsChatSessionState, state is shared
-        // across all routes within application
-        // let addr = ctx.address();
+        let peer_addr = ctx.address();
         self.game_server_addr
-            .send(game_server::Connect {})
+            .send(game_server::Connect { peer_addr: peer_addr.recipient() })
             .into_actor(self)
             .then(|res, act, ctx| {
                 match res {
@@ -44,6 +40,32 @@ impl Actor for Peer {
             })
             .wait(ctx);
     }
+
+    fn stopping(&mut self, _ctx: &mut Self::Context) -> Running {
+        // notify game server
+        self.game_server_addr.do_send(game_server::Disconnect { id: self.id });
+        Running::Stop
+    }
+}
+
+/// Handle messages from game server, we simply send it to peer websocket
+impl Handler<game_server::ConnectionMessage> for Peer {
+    type Result = ();
+
+    fn handle(&mut self, msg: game_server::ConnectionMessage, _ctx: &mut Self::Context) {
+        println!("Peer {:?} - game_server::ConnectionMessage {:?}", self.id, msg);
+        // ctx.text(msg.0);
+    }
+}
+
+/// Handle messages from game server, we simply send it to peer websocket
+impl Handler<game_server::GameObjectsInfo> for Peer {
+    type Result = ();
+
+    fn handle(&mut self, msg: game_server::GameObjectsInfo, _ctx: &mut Self::Context) {
+        println!("Peer {:?} - game_server::GameObjectsInfo {:?}", self.id, msg);
+        todo!();
+    }
 }
 
 impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for Peer {
@@ -59,20 +81,27 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for Peer {
         println!("websocket message {:?}", msg);
 
         match msg {
-            Message::Text(_) => {}
-            Message::Binary(bytes) => {
-                println!("received from client, {:?}", bytes);
+            ws::Message::Text(text) => {
+                println!("received from client (text), {:?}", text);
             }
-            Message::Ping(_) => {}
-            Message::Pong(_) => {}
-            Message::Close(reason) => {
+            ws::Message::Binary(bytes) => {
+                println!("received from client (binary), {:?}", bytes);
+            }
+            ws::Message::Ping(msg) => {
+                self.heart_beat = Instant::now();
+                ctx.pong(&msg);
+            }
+            ws::Message::Pong(_) => {
+                self.heart_beat = Instant::now();
+            }
+            ws::Message::Close(reason) => {
                 ctx.close(reason);
                 ctx.stop();
             }
-            Message::Continuation(_) => {
+            ws::Message::Continuation(_) => {
                 ctx.stop();
             }
-            Message::Nop => {}
+            ws::Message::Nop => {}
         }
     }
 }
