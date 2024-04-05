@@ -18,120 +18,318 @@ pub mod gameplay {
   extern crate flatbuffers;
   use self::flatbuffers::{EndianScalar, Follow};
 
-pub enum UserOffset {}
-#[derive(Copy, Clone, PartialEq)]
-
-pub struct User<'a> {
-  pub _tab: flatbuffers::Table<'a>,
+// struct PlayerControl, aligned to 1
+#[repr(transparent)]
+#[derive(Clone, Copy, PartialEq)]
+pub struct PlayerControl(pub [u8; 4]);
+impl Default for PlayerControl { 
+  fn default() -> Self { 
+    Self([0; 4])
+  }
+}
+impl core::fmt::Debug for PlayerControl {
+  fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+    f.debug_struct("PlayerControl")
+      .field("up", &self.up())
+      .field("down", &self.down())
+      .field("left", &self.left())
+      .field("right", &self.right())
+      .finish()
+  }
 }
 
-impl<'a> flatbuffers::Follow<'a> for User<'a> {
-  type Inner = User<'a>;
+impl flatbuffers::SimpleToVerifyInSlice for PlayerControl {}
+impl<'a> flatbuffers::Follow<'a> for PlayerControl {
+  type Inner = &'a PlayerControl;
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    Self { _tab: flatbuffers::Table::new(buf, loc) }
+    <&'a PlayerControl>::follow(buf, loc)
   }
 }
-
-impl<'a> User<'a> {
-  pub const VT_NAME: flatbuffers::VOffsetT = 4;
-  pub const VT_PLAYER_ID: flatbuffers::VOffsetT = 6;
-
+impl<'a> flatbuffers::Follow<'a> for &'a PlayerControl {
+  type Inner = &'a PlayerControl;
   #[inline]
-  pub unsafe fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
-    User { _tab: table }
-  }
-  #[allow(unused_mut)]
-  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
-    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
-    args: &'args UserArgs<'args>
-  ) -> flatbuffers::WIPOffset<User<'bldr>> {
-    let mut builder = UserBuilder::new(_fbb);
-    if let Some(x) = args.player_id { builder.add_player_id(x); }
-    if let Some(x) = args.name { builder.add_name(x); }
-    builder.finish()
-  }
-
-
-  #[inline]
-  pub fn name(&self) -> Option<&'a str> {
-    // Safety:
-    // Created from valid Table for this object
-    // which contains a valid value in this slot
-    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(User::VT_NAME, None)}
-  }
-  #[inline]
-  pub fn player_id(&self) -> Option<&'a str> {
-    // Safety:
-    // Created from valid Table for this object
-    // which contains a valid value in this slot
-    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(User::VT_PLAYER_ID, None)}
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    flatbuffers::follow_cast_ref::<PlayerControl>(buf, loc)
   }
 }
+impl<'b> flatbuffers::Push for PlayerControl {
+    type Output = PlayerControl;
+    #[inline]
+    unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
+        let src = ::core::slice::from_raw_parts(self as *const PlayerControl as *const u8, Self::size());
+        dst.copy_from_slice(src);
+    }
+}
 
-impl flatbuffers::Verifiable for User<'_> {
+impl<'a> flatbuffers::Verifiable for PlayerControl {
   #[inline]
   fn run_verifier(
     v: &mut flatbuffers::Verifier, pos: usize
   ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
     use self::flatbuffers::Verifiable;
-    v.visit_table(pos)?
-     .visit_field::<flatbuffers::ForwardsUOffset<&str>>("name", Self::VT_NAME, false)?
-     .visit_field::<flatbuffers::ForwardsUOffset<&str>>("player_id", Self::VT_PLAYER_ID, false)?
-     .finish();
-    Ok(())
-  }
-}
-pub struct UserArgs<'a> {
-    pub name: Option<flatbuffers::WIPOffset<&'a str>>,
-    pub player_id: Option<flatbuffers::WIPOffset<&'a str>>,
-}
-impl<'a> Default for UserArgs<'a> {
-  #[inline]
-  fn default() -> Self {
-    UserArgs {
-      name: None,
-      player_id: None,
-    }
+    v.in_buffer::<Self>(pos)
   }
 }
 
-pub struct UserBuilder<'a: 'b, 'b> {
-  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
-  start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
-}
-impl<'a: 'b, 'b> UserBuilder<'a, 'b> {
-  #[inline]
-  pub fn add_name(&mut self, name: flatbuffers::WIPOffset<&'b  str>) {
-    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(User::VT_NAME, name);
+impl<'a> PlayerControl {
+  #[allow(clippy::too_many_arguments)]
+  pub fn new(
+    up: bool,
+    down: bool,
+    left: bool,
+    right: bool,
+  ) -> Self {
+    let mut s = Self([0; 4]);
+    s.set_up(up);
+    s.set_down(down);
+    s.set_left(left);
+    s.set_right(right);
+    s
   }
-  #[inline]
-  pub fn add_player_id(&mut self, player_id: flatbuffers::WIPOffset<&'b  str>) {
-    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(User::VT_PLAYER_ID, player_id);
+
+  pub fn up(&self) -> bool {
+    let mut mem = core::mem::MaybeUninit::<<bool as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[0..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<<bool as EndianScalar>::Scalar>(),
+      );
+      mem.assume_init()
+    })
   }
-  #[inline]
-  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> UserBuilder<'a, 'b> {
-    let start = _fbb.start_table();
-    UserBuilder {
-      fbb_: _fbb,
-      start_: start,
+
+  pub fn set_up(&mut self, x: bool) {
+    let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const _ as *const u8,
+        self.0[0..].as_mut_ptr(),
+        core::mem::size_of::<<bool as EndianScalar>::Scalar>(),
+      );
     }
   }
-  #[inline]
-  pub fn finish(self) -> flatbuffers::WIPOffset<User<'a>> {
-    let o = self.fbb_.end_table(self.start_);
-    flatbuffers::WIPOffset::new(o.value())
+
+  pub fn down(&self) -> bool {
+    let mut mem = core::mem::MaybeUninit::<<bool as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[1..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<<bool as EndianScalar>::Scalar>(),
+      );
+      mem.assume_init()
+    })
+  }
+
+  pub fn set_down(&mut self, x: bool) {
+    let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const _ as *const u8,
+        self.0[1..].as_mut_ptr(),
+        core::mem::size_of::<<bool as EndianScalar>::Scalar>(),
+      );
+    }
+  }
+
+  pub fn left(&self) -> bool {
+    let mut mem = core::mem::MaybeUninit::<<bool as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[2..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<<bool as EndianScalar>::Scalar>(),
+      );
+      mem.assume_init()
+    })
+  }
+
+  pub fn set_left(&mut self, x: bool) {
+    let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const _ as *const u8,
+        self.0[2..].as_mut_ptr(),
+        core::mem::size_of::<<bool as EndianScalar>::Scalar>(),
+      );
+    }
+  }
+
+  pub fn right(&self) -> bool {
+    let mut mem = core::mem::MaybeUninit::<<bool as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[3..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<<bool as EndianScalar>::Scalar>(),
+      );
+      mem.assume_init()
+    })
+  }
+
+  pub fn set_right(&mut self, x: bool) {
+    let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const _ as *const u8,
+        self.0[3..].as_mut_ptr(),
+        core::mem::size_of::<<bool as EndianScalar>::Scalar>(),
+      );
+    }
+  }
+
+}
+
+// struct PlayerPosition, aligned to 4
+#[repr(transparent)]
+#[derive(Clone, Copy, PartialEq)]
+pub struct PlayerPosition(pub [u8; 8]);
+impl Default for PlayerPosition { 
+  fn default() -> Self { 
+    Self([0; 8])
+  }
+}
+impl core::fmt::Debug for PlayerPosition {
+  fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+    f.debug_struct("PlayerPosition")
+      .field("x", &self.x())
+      .field("y", &self.y())
+      .finish()
   }
 }
 
-impl core::fmt::Debug for User<'_> {
-  fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-    let mut ds = f.debug_struct("User");
-      ds.field("name", &self.name());
-      ds.field("player_id", &self.player_id());
-      ds.finish()
+impl flatbuffers::SimpleToVerifyInSlice for PlayerPosition {}
+impl<'a> flatbuffers::Follow<'a> for PlayerPosition {
+  type Inner = &'a PlayerPosition;
+  #[inline]
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    <&'a PlayerPosition>::follow(buf, loc)
   }
 }
+impl<'a> flatbuffers::Follow<'a> for &'a PlayerPosition {
+  type Inner = &'a PlayerPosition;
+  #[inline]
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    flatbuffers::follow_cast_ref::<PlayerPosition>(buf, loc)
+  }
+}
+impl<'b> flatbuffers::Push for PlayerPosition {
+    type Output = PlayerPosition;
+    #[inline]
+    unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
+        let src = ::core::slice::from_raw_parts(self as *const PlayerPosition as *const u8, Self::size());
+        dst.copy_from_slice(src);
+    }
+}
+
+impl<'a> flatbuffers::Verifiable for PlayerPosition {
+  #[inline]
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
+    v.in_buffer::<Self>(pos)
+  }
+}
+
+impl<'a> PlayerPosition {
+  #[allow(clippy::too_many_arguments)]
+  pub fn new(
+    x: f32,
+    y: f32,
+  ) -> Self {
+    let mut s = Self([0; 8]);
+    s.set_x(x);
+    s.set_y(y);
+    s
+  }
+
+  pub fn x(&self) -> f32 {
+    let mut mem = core::mem::MaybeUninit::<<f32 as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[0..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<<f32 as EndianScalar>::Scalar>(),
+      );
+      mem.assume_init()
+    })
+  }
+
+  pub fn set_x(&mut self, x: f32) {
+    let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const _ as *const u8,
+        self.0[0..].as_mut_ptr(),
+        core::mem::size_of::<<f32 as EndianScalar>::Scalar>(),
+      );
+    }
+  }
+
+  pub fn y(&self) -> f32 {
+    let mut mem = core::mem::MaybeUninit::<<f32 as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[4..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<<f32 as EndianScalar>::Scalar>(),
+      );
+      mem.assume_init()
+    })
+  }
+
+  pub fn set_y(&mut self, x: f32) {
+    let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const _ as *const u8,
+        self.0[4..].as_mut_ptr(),
+        core::mem::size_of::<<f32 as EndianScalar>::Scalar>(),
+      );
+    }
+  }
+
+}
+
 pub enum GameplayOffset {}
 #[derive(Copy, Clone, PartialEq)]
 
@@ -148,8 +346,8 @@ impl<'a> flatbuffers::Follow<'a> for Gameplay<'a> {
 }
 
 impl<'a> Gameplay<'a> {
-  pub const VT_X: flatbuffers::VOffsetT = 4;
-  pub const VT_Y: flatbuffers::VOffsetT = 6;
+  pub const VT_PLAYER_CONTROLS: flatbuffers::VOffsetT = 4;
+  pub const VT_PLAYER_POSITION: flatbuffers::VOffsetT = 6;
   pub const VT_PLAYER_ID: flatbuffers::VOffsetT = 8;
 
   #[inline]
@@ -163,25 +361,25 @@ impl<'a> Gameplay<'a> {
   ) -> flatbuffers::WIPOffset<Gameplay<'bldr>> {
     let mut builder = GameplayBuilder::new(_fbb);
     if let Some(x) = args.player_id { builder.add_player_id(x); }
-    builder.add_y(args.y);
-    builder.add_x(args.x);
+    if let Some(x) = args.player_position { builder.add_player_position(x); }
+    if let Some(x) = args.player_controls { builder.add_player_controls(x); }
     builder.finish()
   }
 
 
   #[inline]
-  pub fn x(&self) -> f32 {
+  pub fn player_controls(&self) -> Option<&'a PlayerControl> {
     // Safety:
     // Created from valid Table for this object
     // which contains a valid value in this slot
-    unsafe { self._tab.get::<f32>(Gameplay::VT_X, Some(0.0)).unwrap()}
+    unsafe { self._tab.get::<PlayerControl>(Gameplay::VT_PLAYER_CONTROLS, None)}
   }
   #[inline]
-  pub fn y(&self) -> f32 {
+  pub fn player_position(&self) -> Option<&'a PlayerPosition> {
     // Safety:
     // Created from valid Table for this object
     // which contains a valid value in this slot
-    unsafe { self._tab.get::<f32>(Gameplay::VT_Y, Some(0.0)).unwrap()}
+    unsafe { self._tab.get::<PlayerPosition>(Gameplay::VT_PLAYER_POSITION, None)}
   }
   #[inline]
   pub fn player_id(&self) -> Option<&'a str> {
@@ -199,24 +397,24 @@ impl flatbuffers::Verifiable for Gameplay<'_> {
   ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
     use self::flatbuffers::Verifiable;
     v.visit_table(pos)?
-     .visit_field::<f32>("x", Self::VT_X, false)?
-     .visit_field::<f32>("y", Self::VT_Y, false)?
+     .visit_field::<PlayerControl>("player_controls", Self::VT_PLAYER_CONTROLS, false)?
+     .visit_field::<PlayerPosition>("player_position", Self::VT_PLAYER_POSITION, false)?
      .visit_field::<flatbuffers::ForwardsUOffset<&str>>("player_id", Self::VT_PLAYER_ID, false)?
      .finish();
     Ok(())
   }
 }
 pub struct GameplayArgs<'a> {
-    pub x: f32,
-    pub y: f32,
+    pub player_controls: Option<&'a PlayerControl>,
+    pub player_position: Option<&'a PlayerPosition>,
     pub player_id: Option<flatbuffers::WIPOffset<&'a str>>,
 }
 impl<'a> Default for GameplayArgs<'a> {
   #[inline]
   fn default() -> Self {
     GameplayArgs {
-      x: 0.0,
-      y: 0.0,
+      player_controls: None,
+      player_position: None,
       player_id: None,
     }
   }
@@ -228,12 +426,12 @@ pub struct GameplayBuilder<'a: 'b, 'b> {
 }
 impl<'a: 'b, 'b> GameplayBuilder<'a, 'b> {
   #[inline]
-  pub fn add_x(&mut self, x: f32) {
-    self.fbb_.push_slot::<f32>(Gameplay::VT_X, x, 0.0);
+  pub fn add_player_controls(&mut self, player_controls: &PlayerControl) {
+    self.fbb_.push_slot_always::<&PlayerControl>(Gameplay::VT_PLAYER_CONTROLS, player_controls);
   }
   #[inline]
-  pub fn add_y(&mut self, y: f32) {
-    self.fbb_.push_slot::<f32>(Gameplay::VT_Y, y, 0.0);
+  pub fn add_player_position(&mut self, player_position: &PlayerPosition) {
+    self.fbb_.push_slot_always::<&PlayerPosition>(Gameplay::VT_PLAYER_POSITION, player_position);
   }
   #[inline]
   pub fn add_player_id(&mut self, player_id: flatbuffers::WIPOffset<&'b  str>) {
@@ -257,8 +455,8 @@ impl<'a: 'b, 'b> GameplayBuilder<'a, 'b> {
 impl core::fmt::Debug for Gameplay<'_> {
   fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
     let mut ds = f.debug_struct("Gameplay");
-      ds.field("x", &self.x());
-      ds.field("y", &self.y());
+      ds.field("player_controls", &self.player_controls());
+      ds.field("player_position", &self.player_position());
       ds.field("player_id", &self.player_id());
       ds.finish()
   }

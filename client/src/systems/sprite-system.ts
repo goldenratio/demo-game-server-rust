@@ -15,15 +15,14 @@ export class SpriteSystem extends System {
 
 	removedFromWorld(world: World): void {
 		super.removedFromWorld(world);
-    if(this._disposeBag) {
-      this._disposeBag.dispose();
-      this._disposeBag = undefined;
-    }
+		if (this._disposeBag) {
+			this._disposeBag.dispose();
+			this._disposeBag = undefined;
+		}
 	}
 
 	addedToWorld(world: World): void {
 		super.addedToWorld(world);
-
 		this._disposeBag = new DisposeBag();
 
 		this._disposeBag.completable$(world.entityAdded$([SpriteComponent.TYPE])).subscribe((entity: Entity) => {

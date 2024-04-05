@@ -6,7 +6,7 @@ export class RandomMovementSystem extends System {
 	private readonly _stageWidth: number;
 	private readonly _stageHeight: number;
 
-	constructor(props = { width: 600, height: 400 }) {
+	constructor(props = { width: 800, height: 600 }) {
 		super();
 		this._stageWidth = props.width;
 		this._stageHeight = props.height;

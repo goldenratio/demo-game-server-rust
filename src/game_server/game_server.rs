@@ -1,26 +1,37 @@
+use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use actix::prelude::*;
 use rand::{rngs::ThreadRng, Rng};
-
-/// Chat server sends this messages to session
-#[derive(Message, Debug)]
-#[rtype(result = "()")]
-pub struct ConnectionMessage(pub String);
-
-/// Chat server sends this messages to session
-#[derive(Message, Debug)]
-#[rtype(result = "()")]
-pub struct GameObjectsInfo {
-    pub x: i32,
-    pub y: i32,
-}
+use crate::game_server::peer::ClientPosition;
 
 /// New chat session is created
 #[derive(Message)]
 #[rtype(usize)]
 pub struct Connect {
-    pub peer_addr: Recipient<ConnectionMessage>,
+    pub peer_addr: Recipient<PeerPlayerData>,
+}
+
+#[derive(Message, Debug, Clone, Copy)]
+#[rtype(result = "()")]
+pub enum PeerPlayerData {
+    PlayerJoined {
+        player_id: usize
+    },
+    PlayerLeft {
+        player_id: usize
+    },
+    PlayerPositionUpdate {
+        player_position: ClientPosition,
+        player_id: usize,
+    }
+}
+
+#[derive(Message)]
+#[rtype(result = "()")]
+pub struct PeerPlayerPositionUpdate {
+    pub player_position: ClientPosition,
+    pub player_id: usize,
 }
 
 /// Session is disconnected
@@ -32,6 +43,7 @@ pub struct Disconnect {
 
 #[derive(Debug)]
 pub struct GameServer {
+    peer_addr_map: HashMap<usize, Recipient<PeerPlayerData>>,
     rng: ThreadRng,
     players_online_count: Arc<AtomicUsize>,
 }
@@ -39,8 +51,19 @@ pub struct GameServer {
 impl GameServer {
     pub fn new(players_online_count: Arc<AtomicUsize>) -> GameServer {
         Self {
+            peer_addr_map: Default::default(),
             rng: rand::thread_rng(),
             players_online_count
+        }
+    }
+
+    pub fn send_position_to_other_players(&self, data: PeerPlayerData, skip_id: usize) {
+        for id in self.peer_addr_map.keys() {
+            if *id != skip_id {
+                if let Some(addr) = self.peer_addr_map.get(id) {
+                    addr.do_send(data.clone());
+                }
+            }
         }
     }
 }
@@ -55,15 +78,18 @@ impl Handler<Connect> for GameServer {
     type Result = usize;
 
     /// triggered when an actor (peer) joined
-    fn handle(&mut self, msg: Connect, _ctx: &mut Context<Self>) -> Self::Result {
+    fn handle(&mut self, msg: Connect, _: &mut Context<Self>) -> Self::Result {
         println!("Someone joined");
 
         // register session with random id
         let id = self.rng.gen::<usize>();
+        self.peer_addr_map.insert(id, msg.peer_addr);
 
-        // TODO store peer address
+        // send message to other users
+        self.send_position_to_other_players(PeerPlayerData::PlayerJoined {
+            player_id: id
+        }, id);
 
-        msg.peer_addr.do_send(ConnectionMessage("hello world!".to_owned()));
         self.players_online_count.fetch_add(1, Ordering::SeqCst);
         id
     }
@@ -72,14 +98,28 @@ impl Handler<Connect> for GameServer {
 impl Handler<Disconnect> for GameServer {
     type Result = ();
 
-    fn handle(&mut self, msg: Disconnect, ctx: &mut Self::Context) -> Self::Result {
+    fn handle(&mut self, msg: Disconnect, _: &mut Self::Context) -> Self::Result {
         println!("Someone disconnected!");
         // remove peer address
-        // TODO
+        if let _ = self.peer_addr_map.remove(&msg.id) {
+            // send message to other users
+            self.send_position_to_other_players(PeerPlayerData::PlayerLeft {
+                player_id: msg.id
+            }, 0);
 
-        // send message to other users
-        // TODO
+            self.players_online_count.fetch_sub(1, Ordering::SeqCst);
+        }
+    }
+}
 
-        self.players_online_count.fetch_sub(1, Ordering::SeqCst);
+impl Handler<PeerPlayerPositionUpdate> for GameServer {
+    type Result = ();
+
+    fn handle(&mut self, msg: PeerPlayerPositionUpdate, _: &mut Self::Context) -> Self::Result {
+        let player_position_update = PeerPlayerData::PlayerPositionUpdate {
+            player_position: msg.player_position,
+            player_id: msg.player_id,
+        };
+        self.send_position_to_other_players(player_position_update, msg.player_id);
     }
 }

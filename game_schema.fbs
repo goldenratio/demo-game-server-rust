@@ -1,14 +1,25 @@
 namespace Gameplay;
 
-table User {
-  name:string;
-  player_id:string;
+struct PlayerControl {
+  up:bool;
+  down:bool;
+  left:bool;
+  right:bool;
+}
+
+struct PlayerPosition {
+  x:float;
+  y:float;
 }
 
 table Gameplay {
-  x:float;
-  y:float;
+  player_controls:PlayerControl;
+  player_position:PlayerPosition;
   player_id:string;
+}
+
+table GameEvent {
+    event_type:string;
 }
 
 root_type Gameplay;
