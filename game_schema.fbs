@@ -1,8 +1,14 @@
-namespace users;
+namespace Gameplay;
 
 table User {
   name:string;
-  id:ulong;
+  player_id:string;
 }
 
-root_type User;
+table Gameplay {
+  x:float;
+  y:float;
+  player_id:string;
+}
+
+root_type Gameplay;
