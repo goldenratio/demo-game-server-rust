@@ -7,9 +7,7 @@ export class KeyboardMovementSystem extends System {
 	private readonly _stageHeight: number;
   private readonly _service: CommsManager;
 
-  private _updateLoopCount: number = 0;
-
-	constructor(service: CommsManager, props = { width: 800, height: 600 }) {
+  constructor(service: CommsManager, props = { width: 800, height: 600 }) {
 		super();
     this._service = service;
 		this._stageWidth = props.width;
@@ -28,8 +26,6 @@ export class KeyboardMovementSystem extends System {
     if (!entity) {
       return;
     }
-
-    // this._updateLoopCount ++;
 
     const positionComponent = entity.getComponent<PositionComponent>(PositionComponent.TYPE);
     const keyboardControlsComponent = entity.getComponent<KeyboardControlsComponent>(KeyboardControlsComponent.TYPE);
@@ -66,19 +62,10 @@ export class KeyboardMovementSystem extends System {
 
       if (positionComponent.y > stageHeight + offset) positionComponent.y = -offset;
 
-      if (this._updateLoopCount >= 0) {
-        this._service.sendUpdates({
-          right: keyboardControlsComponent.isRight,
-          left: keyboardControlsComponent.isLeft,
-          up: keyboardControlsComponent.isUp,
-          down: keyboardControlsComponent.isDown,
-        }, {
-          x: positionComponent.x,
-          y: positionComponent.y
-        });
-        // this._updateLoopCount = 0;
-      }
-
+      this._service
+        .setPlayerPosition(positionComponent.x, positionComponent.y)
+        .setKeyPressed(keyboardControlsComponent.isUp, keyboardControlsComponent.isDown, keyboardControlsComponent.isLeft, keyboardControlsComponent.isRight)
+        .sendUpdates();
     }
 	}
 }

@@ -10,7 +10,7 @@ extern crate flatbuffers;
 use self::flatbuffers::{EndianScalar, Follow};
 
 #[allow(unused_imports, dead_code)]
-pub mod gameplay {
+pub mod gameplay_fbdata {
 
   use core::mem;
   use core::cmp::Ordering;
@@ -18,6 +18,95 @@ pub mod gameplay {
   extern crate flatbuffers;
   use self::flatbuffers::{EndianScalar, Follow};
 
+#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+pub const ENUM_MIN_GAME_EVENT_TYPE: i8 = 0;
+#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+pub const ENUM_MAX_GAME_EVENT_TYPE: i8 = 2;
+#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[allow(non_camel_case_types)]
+pub const ENUM_VALUES_GAME_EVENT_TYPE: [GameEventType; 3] = [
+  GameEventType::PlayerJoined,
+  GameEventType::PlayerLeft,
+  GameEventType::PlayerPositionUpdate,
+];
+
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
+#[repr(transparent)]
+pub struct GameEventType(pub i8);
+#[allow(non_upper_case_globals)]
+impl GameEventType {
+  pub const PlayerJoined: Self = Self(0);
+  pub const PlayerLeft: Self = Self(1);
+  pub const PlayerPositionUpdate: Self = Self(2);
+
+  pub const ENUM_MIN: i8 = 0;
+  pub const ENUM_MAX: i8 = 2;
+  pub const ENUM_VALUES: &'static [Self] = &[
+    Self::PlayerJoined,
+    Self::PlayerLeft,
+    Self::PlayerPositionUpdate,
+  ];
+  /// Returns the variant's name or "" if unknown.
+  pub fn variant_name(self) -> Option<&'static str> {
+    match self {
+      Self::PlayerJoined => Some("PlayerJoined"),
+      Self::PlayerLeft => Some("PlayerLeft"),
+      Self::PlayerPositionUpdate => Some("PlayerPositionUpdate"),
+      _ => None,
+    }
+  }
+}
+impl core::fmt::Debug for GameEventType {
+  fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+    if let Some(name) = self.variant_name() {
+      f.write_str(name)
+    } else {
+      f.write_fmt(format_args!("<UNKNOWN {:?}>", self.0))
+    }
+  }
+}
+impl<'a> flatbuffers::Follow<'a> for GameEventType {
+  type Inner = Self;
+  #[inline]
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    let b = flatbuffers::read_scalar_at::<i8>(buf, loc);
+    Self(b)
+  }
+}
+
+impl flatbuffers::Push for GameEventType {
+    type Output = GameEventType;
+    #[inline]
+    unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
+        flatbuffers::emplace_scalar::<i8>(dst, self.0);
+    }
+}
+
+impl flatbuffers::EndianScalar for GameEventType {
+  type Scalar = i8;
+  #[inline]
+  fn to_little_endian(self) -> i8 {
+    self.0.to_le()
+  }
+  #[inline]
+  #[allow(clippy::wrong_self_convention)]
+  fn from_little_endian(v: i8) -> Self {
+    let b = i8::from_le(v);
+    Self(b)
+  }
+}
+
+impl<'a> flatbuffers::Verifiable for GameEventType {
+  #[inline]
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
+    i8::run_verifier(v, pos)
+  }
+}
+
+impl flatbuffers::SimpleToVerifyInSlice for GameEventType {}
 // struct PlayerControl, aligned to 1
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq)]
@@ -461,6 +550,137 @@ impl core::fmt::Debug for Gameplay<'_> {
       ds.finish()
   }
 }
+pub enum GameEventOffset {}
+#[derive(Copy, Clone, PartialEq)]
+
+pub struct GameEvent<'a> {
+  pub _tab: flatbuffers::Table<'a>,
+}
+
+impl<'a> flatbuffers::Follow<'a> for GameEvent<'a> {
+  type Inner = GameEvent<'a>;
+  #[inline]
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    Self { _tab: flatbuffers::Table::new(buf, loc) }
+  }
+}
+
+impl<'a> GameEvent<'a> {
+  pub const VT_EVENT_TYPE: flatbuffers::VOffsetT = 4;
+  pub const VT_PLAYER_ID: flatbuffers::VOffsetT = 6;
+  pub const VT_PLAYER_POSITION: flatbuffers::VOffsetT = 8;
+
+  #[inline]
+  pub unsafe fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
+    GameEvent { _tab: table }
+  }
+  #[allow(unused_mut)]
+  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
+    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+    args: &'args GameEventArgs<'args>
+  ) -> flatbuffers::WIPOffset<GameEvent<'bldr>> {
+    let mut builder = GameEventBuilder::new(_fbb);
+    if let Some(x) = args.player_position { builder.add_player_position(x); }
+    if let Some(x) = args.player_id { builder.add_player_id(x); }
+    builder.add_event_type(args.event_type);
+    builder.finish()
+  }
+
+
+  #[inline]
+  pub fn event_type(&self) -> GameEventType {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<GameEventType>(GameEvent::VT_EVENT_TYPE, Some(GameEventType::PlayerJoined)).unwrap()}
+  }
+  #[inline]
+  pub fn player_id(&self) -> Option<&'a str> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(GameEvent::VT_PLAYER_ID, None)}
+  }
+  #[inline]
+  pub fn player_position(&self) -> Option<&'a PlayerPosition> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<PlayerPosition>(GameEvent::VT_PLAYER_POSITION, None)}
+  }
+}
+
+impl flatbuffers::Verifiable for GameEvent<'_> {
+  #[inline]
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
+    v.visit_table(pos)?
+     .visit_field::<GameEventType>("event_type", Self::VT_EVENT_TYPE, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<&str>>("player_id", Self::VT_PLAYER_ID, false)?
+     .visit_field::<PlayerPosition>("player_position", Self::VT_PLAYER_POSITION, false)?
+     .finish();
+    Ok(())
+  }
+}
+pub struct GameEventArgs<'a> {
+    pub event_type: GameEventType,
+    pub player_id: Option<flatbuffers::WIPOffset<&'a str>>,
+    pub player_position: Option<&'a PlayerPosition>,
+}
+impl<'a> Default for GameEventArgs<'a> {
+  #[inline]
+  fn default() -> Self {
+    GameEventArgs {
+      event_type: GameEventType::PlayerJoined,
+      player_id: None,
+      player_position: None,
+    }
+  }
+}
+
+pub struct GameEventBuilder<'a: 'b, 'b> {
+  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
+  start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
+}
+impl<'a: 'b, 'b> GameEventBuilder<'a, 'b> {
+  #[inline]
+  pub fn add_event_type(&mut self, event_type: GameEventType) {
+    self.fbb_.push_slot::<GameEventType>(GameEvent::VT_EVENT_TYPE, event_type, GameEventType::PlayerJoined);
+  }
+  #[inline]
+  pub fn add_player_id(&mut self, player_id: flatbuffers::WIPOffset<&'b  str>) {
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(GameEvent::VT_PLAYER_ID, player_id);
+  }
+  #[inline]
+  pub fn add_player_position(&mut self, player_position: &PlayerPosition) {
+    self.fbb_.push_slot_always::<&PlayerPosition>(GameEvent::VT_PLAYER_POSITION, player_position);
+  }
+  #[inline]
+  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> GameEventBuilder<'a, 'b> {
+    let start = _fbb.start_table();
+    GameEventBuilder {
+      fbb_: _fbb,
+      start_: start,
+    }
+  }
+  #[inline]
+  pub fn finish(self) -> flatbuffers::WIPOffset<GameEvent<'a>> {
+    let o = self.fbb_.end_table(self.start_);
+    flatbuffers::WIPOffset::new(o.value())
+  }
+}
+
+impl core::fmt::Debug for GameEvent<'_> {
+  fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+    let mut ds = f.debug_struct("GameEvent");
+      ds.field("event_type", &self.event_type());
+      ds.field("player_id", &self.player_id());
+      ds.field("player_position", &self.player_position());
+      ds.finish()
+  }
+}
 #[inline]
 /// Verifies that a buffer of bytes contains a `Gameplay`
 /// and returns it.
@@ -532,5 +752,5 @@ pub fn finish_gameplay_buffer<'a, 'b>(
 pub fn finish_size_prefixed_gameplay_buffer<'a, 'b>(fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>, root: flatbuffers::WIPOffset<Gameplay<'a>>) {
   fbb.finish_size_prefixed(root, None);
 }
-}  // pub mod Gameplay
+}  // pub mod GameplayFBData
 

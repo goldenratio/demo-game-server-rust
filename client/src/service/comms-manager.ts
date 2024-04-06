@@ -1,20 +1,7 @@
-import { Disposable, DisposeBag } from '../utils/dispose-bag';
-import {Observable, ReplaySubject, Subject} from 'rxjs';
-import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
+import {Disposable, DisposeBag} from '../utils/dispose-bag';
+import {fromEvent, Observable, ReplaySubject, Subject} from 'rxjs';
 import {Builder, ByteBuffer} from "flatbuffers";
-import {Gameplay, PlayerControl, PlayerPosition} from "../gen/gameplay";
-
-interface PlayerControlsData {
-  readonly up: boolean;
-  readonly down: boolean;
-  readonly left: boolean;
-  readonly right: boolean;
-}
-
-interface PlayerPositionData {
-  readonly x: number;
-  readonly y: number;
-}
+import {GameEvent, GameEventType, Gameplay, PlayerControl, PlayerPosition} from "../gen/gameplay-fbdata";
 
 interface PeerPlayerUpdate {
   readonly playerId: string;
@@ -26,64 +13,85 @@ export class CommsManager implements Disposable {
 	private readonly _connectedSubject$ = new ReplaySubject<void>(1);
   private readonly _opponentPlayerUpdateSubject$ = new Subject<PeerPlayerUpdate>();
   private readonly _removePeerPlayerSubject$ = new Subject<{ readonly playerId: string }>();
-	private readonly _socketSubject$: WebSocketSubject<any>;
 	private readonly _disposeBag = new DisposeBag();
   private readonly _socket: WebSocket;
 
   private _isSocketClosed: boolean = false;
+  private _posX: number = 0;
+  private _posY: number = 0;
+  private _isLeft: boolean = false;
+  private _isRight: boolean = false;
+  private _isUp: boolean = false;
+  private _isDown: boolean = false;
+
+  private _isDirty: boolean = false;
 
 	constructor() {
-		this._socketSubject$ = webSocket({
-			url: 'ws://localhost:8090/ws',
-			binaryType: 'arraybuffer',
-			openObserver: {
-				next: () => {
-					console.log('socket connection opened!');
-					this._connectedSubject$.next();
-					this._connectedSubject$.complete();
-				},
-				error: err => {
-					console.log('socket error! ', err);
-				},
-			},
-		});
-
-		// this._disposeBag.completable$(this._socketSubject$).subscribe(event => {
-		// 	console.log('socket stream! ', event);
-		// });
-
     this._socket = new WebSocket('ws://localhost:8090/ws');
     this._socket.binaryType = 'arraybuffer';
-    this._socket.addEventListener('open', () => {
+
+    this._disposeBag.completable$(fromEvent(this._socket, 'open')).subscribe(() => {
       console.log('socket connection opened!');
       this._connectedSubject$.next();
       this._connectedSubject$.complete();
-    });
+    })
 
-    this._socket.addEventListener('message', event => {
+    this._disposeBag.completable$(fromEvent(this._socket, 'message')).subscribe((event: MessageEvent) => {
       const bytes = new Uint8Array(event.data);
       // console.log('message from server, ', bytes);
       const buffer = new ByteBuffer(bytes);
-      const gameplay = Gameplay.getRootAsGameplay(buffer);
-      // console.log(gameplay.playerId(), { x: gameplay.playerPosition().x(), y: gameplay.playerPosition().y() });
-      const pos = gameplay.playerPosition();
-      this._opponentPlayerUpdateSubject$.next({
-        playerId: gameplay.playerId(),
-        x: pos.x(),
-        y: pos.y()
-      })
+      const gameEvent = GameEvent.getRootAsGameEvent(buffer);
+      const eventType = gameEvent.eventType();
+      
+      if (eventType === GameEventType.PlayerPositionUpdate) {
+        const pos = gameEvent.playerPosition();
+        this._opponentPlayerUpdateSubject$.next({
+          playerId: gameEvent.playerId(),
+          x: pos.x(),
+          y: pos.y()
+        })
+      } else if (eventType === GameEventType.PlayerLeft) {
+        const playerId = gameEvent.playerId();
+        this._removePeerPlayerSubject$.next({
+          playerId: playerId
+        });
+      } else if (eventType === GameEventType.PlayerJoined) {
+        // TODO
+      }
     });
 
-    this._socket.addEventListener('close', event => {
+    this._disposeBag.completable$(fromEvent(this._socket, 'close')).subscribe(() => {
       console.log('socket closed!');
       this._isSocketClosed = true;
     });
 	}
 
 	dispose(): void {
-		this._socketSubject$.complete();
+    if (this._socket) {
+      this._socket.close();
+    }
 		this._disposeBag.dispose();
 	}
+
+  setPlayerPosition(x: number, y: number): CommsManager {
+    if (this._posX !== x || this._posY !== y) {
+      this._posX = x;
+      this._posY = y;
+      this._isDirty = true;
+    }
+    return this;
+  }
+
+  setKeyPressed(isUp: boolean, isDown: boolean, isLeft: boolean, isRight: boolean): CommsManager {
+    if (this._isUp !== isUp || this._isDown !== isDown || this._isLeft !== isLeft || this._isRight !== isRight) {
+      this._isUp = isUp;
+      this._isDown = isDown;
+      this._isLeft = isLeft;
+      this._isRight = isRight;
+      this._isDirty = true;
+    }
+    return this;
+  }
 
 	get connected$(): Observable<void> {
 		return this._connectedSubject$.asObservable();
@@ -97,11 +105,17 @@ export class CommsManager implements Disposable {
     return this._removePeerPlayerSubject$.asObservable();
   }
 
-  sendUpdates(playerControls: PlayerControlsData, playerPosition: PlayerPositionData): void {
+  sendUpdates(): void {
     // console.log('sendUpdates ', playerPosition);
     if (this._isSocketClosed) {
       return;
     }
+
+    if (!this._isDirty) {
+      return;
+    }
+
+    this._isDirty = false;
     const builder = new Builder(0);
     builder.clear();
 
@@ -109,17 +123,14 @@ export class CommsManager implements Disposable {
 
     Gameplay.startGameplay(builder);
 
-    Gameplay.addPlayerControls(builder, PlayerControl.createPlayerControl(builder, playerControls.up, playerControls.down, playerControls.left, playerControls.right));
-    Gameplay.addPlayerPosition(builder, PlayerPosition.createPlayerPosition(builder, playerPosition.x, playerPosition.y));
+    Gameplay.addPlayerControls(builder, PlayerControl.createPlayerControl(builder, this._isUp, this._isDown, this._isLeft, this._isRight));
+    Gameplay.addPlayerPosition(builder, PlayerPosition.createPlayerPosition(builder, this._posX, this._posY));
     Gameplay.addPlayerId(builder, playerIdOffset);
 
     const offset = Gameplay.endGameplay(builder);
     builder.finish(offset);
 
     const bytes = builder.asUint8Array();
-    // console.log('sending, ', bytes);
-
     this._socket.send(bytes);
-    // this._socketSubject$.next(bytes);
   }
 }

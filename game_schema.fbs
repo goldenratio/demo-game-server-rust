@@ -1,4 +1,4 @@
-namespace Gameplay;
+namespace GameplayFBData;
 
 struct PlayerControl {
   up:bool;
@@ -18,8 +18,12 @@ table Gameplay {
   player_id:string;
 }
 
+enum GameEventType : byte { PlayerJoined, PlayerLeft, PlayerPositionUpdate }
+
 table GameEvent {
-    event_type:string;
+  event_type:GameEventType;
+  player_id:string;
+  player_position:PlayerPosition;
 }
 
 root_type Gameplay;
