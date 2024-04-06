@@ -1,5 +1,5 @@
 use flatbuffers::FlatBufferBuilder;
-use crate::game_schema_generated::gameplay_fbdata::{GameEvent, GameEventArgs, GameEventType, PlayerControl, PlayerPosition, root_as_gameplay};
+use crate::game_schema_generated::gameplay_fbdata::{GameEvent, GameEventArgs, GameEventType, Gameplay, GameplayArgs, PlayerControl, PlayerPosition, root_as_gameplay};
 use crate::game_server::peer::{ClientControls, ClientData, ClientPosition};
 
 pub fn read_gameplay_data(buf: &[u8]) -> ClientData {
@@ -37,7 +37,7 @@ pub fn create_peer_position_bytes(player_id: usize, player_position: ClientPosit
     let player_position = PlayerPosition::new(player_position.x, player_position.y);
 
     let args = GameEventArgs {
-        event_type: GameEventType::PlayerPositionUpdate,
+        event_type: GameEventType::RemotePeerPositionUpdate,
         player_id: Some(bldr.create_string(&*player_id.to_string())),
         player_position: Option::from(&player_position),
     };
@@ -69,7 +69,7 @@ pub fn create_peer_left_bytes(player_id: usize) -> Vec<u8> {
     bldr.reset();
 
     let args = GameEventArgs {
-        event_type: GameEventType::PlayerLeft,
+        event_type: GameEventType::RemotePeerLeft,
         player_id: Some(bldr.create_string(&*player_id.to_string())),
         player_position: None
     };

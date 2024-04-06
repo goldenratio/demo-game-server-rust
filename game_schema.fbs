@@ -18,7 +18,7 @@ table Gameplay {
   player_id:string;
 }
 
-enum GameEventType : byte { PlayerJoined, PlayerLeft, PlayerPositionUpdate }
+enum GameEventType : byte { RemotePeerJoined, RemotePeerLeft, RemotePeerPositionUpdate, GameWorldUpdate }
 
 table GameEvent {
   event_type:GameEventType;

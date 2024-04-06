@@ -21,13 +21,14 @@ pub mod gameplay_fbdata {
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_GAME_EVENT_TYPE: i8 = 0;
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
-pub const ENUM_MAX_GAME_EVENT_TYPE: i8 = 2;
+pub const ENUM_MAX_GAME_EVENT_TYPE: i8 = 3;
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 #[allow(non_camel_case_types)]
-pub const ENUM_VALUES_GAME_EVENT_TYPE: [GameEventType; 3] = [
-  GameEventType::PlayerJoined,
-  GameEventType::PlayerLeft,
-  GameEventType::PlayerPositionUpdate,
+pub const ENUM_VALUES_GAME_EVENT_TYPE: [GameEventType; 4] = [
+  GameEventType::RemotePeerJoined,
+  GameEventType::RemotePeerLeft,
+  GameEventType::RemotePeerPositionUpdate,
+  GameEventType::GameWorldUpdate,
 ];
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
@@ -35,23 +36,26 @@ pub const ENUM_VALUES_GAME_EVENT_TYPE: [GameEventType; 3] = [
 pub struct GameEventType(pub i8);
 #[allow(non_upper_case_globals)]
 impl GameEventType {
-  pub const PlayerJoined: Self = Self(0);
-  pub const PlayerLeft: Self = Self(1);
-  pub const PlayerPositionUpdate: Self = Self(2);
+  pub const RemotePeerJoined: Self = Self(0);
+  pub const RemotePeerLeft: Self = Self(1);
+  pub const RemotePeerPositionUpdate: Self = Self(2);
+  pub const GameWorldUpdate: Self = Self(3);
 
   pub const ENUM_MIN: i8 = 0;
-  pub const ENUM_MAX: i8 = 2;
+  pub const ENUM_MAX: i8 = 3;
   pub const ENUM_VALUES: &'static [Self] = &[
-    Self::PlayerJoined,
-    Self::PlayerLeft,
-    Self::PlayerPositionUpdate,
+    Self::RemotePeerJoined,
+    Self::RemotePeerLeft,
+    Self::RemotePeerPositionUpdate,
+    Self::GameWorldUpdate,
   ];
   /// Returns the variant's name or "" if unknown.
   pub fn variant_name(self) -> Option<&'static str> {
     match self {
-      Self::PlayerJoined => Some("PlayerJoined"),
-      Self::PlayerLeft => Some("PlayerLeft"),
-      Self::PlayerPositionUpdate => Some("PlayerPositionUpdate"),
+      Self::RemotePeerJoined => Some("RemotePeerJoined"),
+      Self::RemotePeerLeft => Some("RemotePeerLeft"),
+      Self::RemotePeerPositionUpdate => Some("RemotePeerPositionUpdate"),
+      Self::GameWorldUpdate => Some("GameWorldUpdate"),
       _ => None,
     }
   }
@@ -592,7 +596,7 @@ impl<'a> GameEvent<'a> {
     // Safety:
     // Created from valid Table for this object
     // which contains a valid value in this slot
-    unsafe { self._tab.get::<GameEventType>(GameEvent::VT_EVENT_TYPE, Some(GameEventType::PlayerJoined)).unwrap()}
+    unsafe { self._tab.get::<GameEventType>(GameEvent::VT_EVENT_TYPE, Some(GameEventType::RemotePeerJoined)).unwrap()}
   }
   #[inline]
   pub fn player_id(&self) -> Option<&'a str> {
@@ -633,7 +637,7 @@ impl<'a> Default for GameEventArgs<'a> {
   #[inline]
   fn default() -> Self {
     GameEventArgs {
-      event_type: GameEventType::PlayerJoined,
+      event_type: GameEventType::RemotePeerJoined,
       player_id: None,
       player_position: None,
     }
@@ -647,7 +651,7 @@ pub struct GameEventBuilder<'a: 'b, 'b> {
 impl<'a: 'b, 'b> GameEventBuilder<'a, 'b> {
   #[inline]
   pub fn add_event_type(&mut self, event_type: GameEventType) {
-    self.fbb_.push_slot::<GameEventType>(GameEvent::VT_EVENT_TYPE, event_type, GameEventType::PlayerJoined);
+    self.fbb_.push_slot::<GameEventType>(GameEvent::VT_EVENT_TYPE, event_type, GameEventType::RemotePeerJoined);
   }
   #[inline]
   pub fn add_player_id(&mut self, player_id: flatbuffers::WIPOffset<&'b  str>) {

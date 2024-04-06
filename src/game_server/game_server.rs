@@ -15,13 +15,13 @@ pub struct Connect {
 #[derive(Message, Debug, Clone, Copy)]
 #[rtype(result = "()")]
 pub enum PeerPlayerData {
-    PlayerJoined {
+    RemotePeerJoined {
         player_id: usize
     },
-    PlayerLeft {
+    RemotePeerLeft {
         player_id: usize
     },
-    PlayerPositionUpdate {
+    RemotePeerPositionUpdate {
         player_position: ClientPosition,
         player_id: usize,
     }
@@ -86,7 +86,7 @@ impl Handler<Connect> for GameServer {
         self.peer_addr_map.insert(id, msg.peer_addr);
 
         // send message to other users
-        self.send_position_to_other_players(PeerPlayerData::PlayerJoined {
+        self.send_position_to_other_players(PeerPlayerData::RemotePeerJoined {
             player_id: id
         }, id);
 
@@ -103,7 +103,7 @@ impl Handler<Disconnect> for GameServer {
         // remove peer address
         if let _ = self.peer_addr_map.remove(&msg.id) {
             // send message to other users
-            self.send_position_to_other_players(PeerPlayerData::PlayerLeft {
+            self.send_position_to_other_players(PeerPlayerData::RemotePeerLeft {
                 player_id: msg.id
             }, 0);
 
@@ -116,7 +116,7 @@ impl Handler<PeerPlayerPositionUpdate> for GameServer {
     type Result = ();
 
     fn handle(&mut self, msg: PeerPlayerPositionUpdate, _: &mut Self::Context) -> Self::Result {
-        let player_position_update = PeerPlayerData::PlayerPositionUpdate {
+        let player_position_update = PeerPlayerData::RemotePeerPositionUpdate {
             player_position: msg.player_position,
             player_id: msg.player_id,
         };

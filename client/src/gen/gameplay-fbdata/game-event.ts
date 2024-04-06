@@ -26,7 +26,7 @@ static getSizePrefixedRootAsGameEvent(bb:flatbuffers.ByteBuffer, obj?:GameEvent)
 
 eventType():GameEventType {
   const offset = this.bb!.__offset(this.bb_pos, 4);
-  return offset ? this.bb!.readInt8(this.bb_pos + offset) : GameEventType.PlayerJoined;
+  return offset ? this.bb!.readInt8(this.bb_pos + offset) : GameEventType.RemotePeerJoined;
 }
 
 playerId():string|null
@@ -46,7 +46,7 @@ static startGameEvent(builder:flatbuffers.Builder) {
 }
 
 static addEventType(builder:flatbuffers.Builder, eventType:GameEventType) {
-  builder.addFieldInt8(0, eventType, GameEventType.PlayerJoined);
+  builder.addFieldInt8(0, eventType, GameEventType.RemotePeerJoined);
 }
 
 static addPlayerId(builder:flatbuffers.Builder, playerIdOffset:flatbuffers.Offset) {

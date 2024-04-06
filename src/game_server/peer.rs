@@ -77,14 +77,14 @@ impl Handler<game_server::PeerPlayerData> for Peer {
         // println!("Peer {:?} - game_server::PeerPlayerData {:?}", self.id, msg);
 
         match msg {
-            game_server::PeerPlayerData::PlayerJoined { player_id } => {
-                // TODO current game world state (all active players) and send it to actor
+            game_server::PeerPlayerData::RemotePeerJoined { player_id: player_id } => {
+                //
             }
-            game_server::PeerPlayerData::PlayerLeft { player_id } => {
+            game_server::PeerPlayerData::RemotePeerLeft { player_id: player_id } => {
                 let bytes = create_peer_left_bytes(player_id);
                 ctx.binary(bytes);
             }
-            game_server::PeerPlayerData::PlayerPositionUpdate { player_id, player_position } => {
+            game_server::PeerPlayerData::RemotePeerPositionUpdate { player_id: player_id, player_position } => {
                 let bytes = create_peer_position_bytes(player_id, player_position);
                 ctx.binary(bytes);
             }

@@ -42,20 +42,20 @@ export class CommsManager implements Disposable {
       const buffer = new ByteBuffer(bytes);
       const gameEvent = GameEvent.getRootAsGameEvent(buffer);
       const eventType = gameEvent.eventType();
-      
-      if (eventType === GameEventType.PlayerPositionUpdate) {
+
+      if (eventType === GameEventType.RemotePeerPositionUpdate) {
         const pos = gameEvent.playerPosition();
         this._opponentPlayerUpdateSubject$.next({
           playerId: gameEvent.playerId(),
           x: pos.x(),
           y: pos.y()
         })
-      } else if (eventType === GameEventType.PlayerLeft) {
+      } else if (eventType === GameEventType.RemotePeerLeft) {
         const playerId = gameEvent.playerId();
         this._removePeerPlayerSubject$.next({
           playerId: playerId
         });
-      } else if (eventType === GameEventType.PlayerJoined) {
+      } else if (eventType === GameEventType.RemotePeerJoined) {
         // TODO
       }
     });
