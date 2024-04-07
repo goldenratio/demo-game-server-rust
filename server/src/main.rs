@@ -11,10 +11,13 @@ use actix_web::{web, App, HttpServer};
 use log::info;
 use std::sync::atomic::AtomicUsize;
 use std::sync::Arc;
+use game_world_wasm::{add_num};
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     env_logger::init();
+
+    println!("{}", add_num(1, 2));
 
     // set up applications state
     // keep a count of the number of visitors
