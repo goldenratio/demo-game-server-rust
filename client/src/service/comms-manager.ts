@@ -52,11 +52,13 @@ export class CommsManager implements Disposable {
         })
       } else if (eventType === GameEventType.RemotePeerLeft) {
         const playerId = gameEvent.playerId();
+        console.log('Remote player left: ', playerId);
         this._removePeerPlayerSubject$.next({
           playerId: playerId
         });
       } else if (eventType === GameEventType.RemotePeerJoined) {
-        // TODO
+        const playerId = gameEvent.playerId();
+        console.log('Remote player joined: ', playerId);
       }
     });
 

@@ -89,3 +89,35 @@ pub fn create_peer_left_bytes(player_id: usize) -> Vec<u8> {
 
     bytes
 }
+
+pub fn create_peer_joined_bytes(player_id: usize) -> Vec<u8> {
+    let mut bldr = FlatBufferBuilder::new();
+    let mut bytes: Vec<u8> = Vec::new();
+
+    // Reset the `bytes` Vec to a clean state.
+    bytes.clear();
+
+    // Reset the `FlatBufferBuilder` to a clean state.
+    bldr.reset();
+
+    let args = GameEventArgs {
+        event_type: GameEventType::RemotePeerJoined,
+        player_id: Some(bldr.create_string(&*player_id.to_string())),
+        player_position: None
+    };
+
+    // Call the `User::create` function with the `FlatBufferBuilder` and our
+    // UserArgs object, to serialize the data to the FlatBuffer. The returned
+    // value is an offset used to track the location of this serializaed data.
+    let user_offset = GameEvent::create(&mut bldr, &args);
+
+    // Finish the write operation by calling the generated function
+    // `finish_user_buffer` with the `user_offset` created by `User::create`.
+    bldr.finish(user_offset, None);
+
+    // Copy the serialized FlatBuffers data to our own byte buffer.
+    let finished_data = bldr.finished_data();
+    bytes.extend_from_slice(finished_data);
+
+    bytes
+}

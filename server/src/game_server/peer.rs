@@ -2,7 +2,8 @@ use std::time::Instant;
 use crate::game_server::game_server;
 use actix::{Actor, ActorContext, ActorFutureExt, Addr, AsyncContext, ContextFutureSpawner, fut, Handler, Running, StreamHandler, WrapFuture};
 use actix_web_actors::ws;
-use crate::game_server::flatbuffers_utils::{create_peer_left_bytes, create_peer_position_bytes, read_gameplay_data};
+use crate::game_server::flatbuffers_utils::{create_peer_joined_bytes, create_peer_left_bytes, create_peer_position_bytes, read_gameplay_data};
+use crate::game_server::message_types::{Connect, Disconnect, PeerPlayerData, PeerPlayerPositionUpdate};
 
 #[derive(Debug)]
 pub struct ClientControls {
@@ -43,7 +44,7 @@ impl Actor for Peer {
     fn started(&mut self, ctx: &mut Self::Context) {
         let peer_addr = ctx.address();
         self.game_server_addr
-            .send(game_server::Connect { peer_addr: peer_addr.recipient() })
+            .send(Connect { peer_addr: peer_addr.recipient() })
             .into_actor(self)
             .then(|res, act, ctx| {
                 match res {
@@ -64,27 +65,28 @@ impl Actor for Peer {
 
     fn stopping(&mut self, _ctx: &mut Self::Context) -> Running {
         // notify game server
-        self.game_server_addr.do_send(game_server::Disconnect { id: self.id });
+        self.game_server_addr.do_send(Disconnect { id: self.id });
         Running::Stop
     }
 }
 
 /// Handle messages from game server, we simply send it to peer websocket
-impl Handler<game_server::PeerPlayerData> for Peer {
+impl Handler<PeerPlayerData> for Peer {
     type Result = ();
 
-    fn handle(&mut self, msg: game_server::PeerPlayerData, ctx: &mut Self::Context) {
+    fn handle(&mut self, msg: PeerPlayerData, ctx: &mut Self::Context) {
         // println!("Peer {:?} - game_server::PeerPlayerData {:?}", self.id, msg);
 
         match msg {
-            game_server::PeerPlayerData::RemotePeerJoined { player_id: player_id } => {
-                //
+            PeerPlayerData::RemotePeerJoined { player_id } => {
+                let bytes = create_peer_joined_bytes(player_id);
+                ctx.binary(bytes);
             }
-            game_server::PeerPlayerData::RemotePeerLeft { player_id: player_id } => {
+            PeerPlayerData::RemotePeerLeft { player_id } => {
                 let bytes = create_peer_left_bytes(player_id);
                 ctx.binary(bytes);
             }
-            game_server::PeerPlayerData::RemotePeerPositionUpdate { player_id: player_id, player_position } => {
+            PeerPlayerData::RemotePeerPositionUpdate { player_id, player_position } => {
                 let bytes = create_peer_position_bytes(player_id, player_position);
                 ctx.binary(bytes);
             }
@@ -110,8 +112,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for Peer {
             }
             ws::Message::Binary(bytes) => {
                 let gameplay_data = read_gameplay_data(&bytes);
-                // println!("received from client (binary), {:?} : {:?}", self.id, gameplay_data.player_position);
-                self.game_server_addr.do_send(game_server::PeerPlayerPositionUpdate {
+                self.game_server_addr.do_send(PeerPlayerPositionUpdate {
                     player_position: gameplay_data.player_position,
                     player_id: self.id
                 });
