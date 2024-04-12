@@ -3,6 +3,7 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use actix::prelude::*;
 use rand::{rngs::ThreadRng, Rng};
+use crate::game_server::game_world::GameWorld;
 use crate::game_server::message_types::{Connect, Disconnect, PeerPlayerData, PeerPlayerPositionUpdate};
 
 #[derive(Debug)]
@@ -10,6 +11,7 @@ pub struct GameServer {
     peer_addr_map: HashMap<usize, Recipient<PeerPlayerData>>,
     rng: ThreadRng,
     players_online_count: Arc<AtomicUsize>,
+    game_world: GameWorld
 }
 
 impl GameServer {
@@ -17,7 +19,8 @@ impl GameServer {
         Self {
             peer_addr_map: Default::default(),
             rng: rand::thread_rng(),
-            players_online_count
+            players_online_count,
+            game_world: Default::default()
         }
     }
 
@@ -49,10 +52,18 @@ impl Handler<Connect> for GameServer {
         let id = self.rng.gen::<usize>();
         self.peer_addr_map.insert(id, msg.peer_addr);
 
+        self.game_world.add_player(id);
+
         // send message to other users
         self.send_position_to_other_players(PeerPlayerData::RemotePeerJoined {
             player_id: id
         }, id);
+
+        // send world update to current peer
+        let world_data = self.game_world.get_world_update();
+        if let Some(addr) = self.peer_addr_map.get(&id) {
+            addr.do_send(PeerPlayerData::WorldUpdate { world_data });
+        }
 
         self.players_online_count.fetch_add(1, Ordering::SeqCst);
         id
@@ -71,6 +82,7 @@ impl Handler<Disconnect> for GameServer {
                 player_id: msg.id
             }, 0);
 
+            self.game_world.remove_player(msg.id);
             self.players_online_count.fetch_sub(1, Ordering::SeqCst);
         }
     }
@@ -84,6 +96,7 @@ impl Handler<PeerPlayerPositionUpdate> for GameServer {
             player_position: msg.player_position,
             player_id: msg.player_id,
         };
+        self.game_world.update_player_position(msg.player_id, msg.player_position.x, msg.player_position.y);
         self.send_position_to_other_players(player_position_update, msg.player_id);
     }
 }

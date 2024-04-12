@@ -1,4 +1,5 @@
 use actix::{Message, Recipient};
+use crate::game_server::game_world::PeerPlayerInfo;
 use crate::game_server::peer::ClientPosition;
 
 /// New chat session is created
@@ -8,7 +9,7 @@ pub struct Connect {
     pub peer_addr: Recipient<PeerPlayerData>,
 }
 
-#[derive(Message, Debug, Clone, Copy)]
+#[derive(Message, Debug, Clone)]
 #[rtype(result = "()")]
 pub enum PeerPlayerData {
     RemotePeerJoined {
@@ -20,6 +21,9 @@ pub enum PeerPlayerData {
     RemotePeerPositionUpdate {
         player_position: ClientPosition,
         player_id: usize,
+    },
+    WorldUpdate {
+        world_data: Vec<PeerPlayerInfo>,
     }
 }
 

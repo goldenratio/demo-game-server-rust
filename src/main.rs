@@ -1,7 +1,6 @@
 mod game_schema_generated;
 mod game_server;
 mod route_handlers;
-mod game_world;
 
 use crate::game_server::game_server::GameServer;
 use crate::route_handlers::create_ws::create_ws;

@@ -90,6 +90,9 @@ impl Handler<PeerPlayerData> for Peer {
                 let bytes = create_peer_position_bytes(player_id, player_position);
                 ctx.binary(bytes);
             }
+            PeerPlayerData::WorldUpdate { world_data } => {
+                println!("send world update to peer {:?} {:?}", self.id, world_data);
+            }
         }
     }
 }
