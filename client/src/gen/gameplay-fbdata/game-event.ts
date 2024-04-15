@@ -2,8 +2,8 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { GameEventType } from './game-event-type';
-import { PlayerPosition } from './player-position';
+import { GameEventType } from '../gameplay-fbdata/game-event-type';
+import { PlayerData } from '../gameplay-fbdata/player-data';
 
 
 export class GameEvent {
@@ -29,32 +29,30 @@ eventType():GameEventType {
   return offset ? this.bb!.readInt8(this.bb_pos + offset) : GameEventType.RemotePeerJoined;
 }
 
-playerId():string|null
-playerId(optionalEncoding:flatbuffers.Encoding):string|Uint8Array|null
-playerId(optionalEncoding?:any):string|Uint8Array|null {
+playerDataList(index: number, obj?:PlayerData):PlayerData|null {
   const offset = this.bb!.__offset(this.bb_pos, 6);
-  return offset ? this.bb!.__string(this.bb_pos + offset, optionalEncoding) : null;
+  return offset ? (obj || new PlayerData()).__init(this.bb!.__vector(this.bb_pos + offset) + index * 12, this.bb!) : null;
 }
 
-playerPosition(obj?:PlayerPosition):PlayerPosition|null {
-  const offset = this.bb!.__offset(this.bb_pos, 8);
-  return offset ? (obj || new PlayerPosition()).__init(this.bb_pos + offset, this.bb!) : null;
+playerDataListLength():number {
+  const offset = this.bb!.__offset(this.bb_pos, 6);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
 static startGameEvent(builder:flatbuffers.Builder) {
-  builder.startObject(3);
+  builder.startObject(2);
 }
 
 static addEventType(builder:flatbuffers.Builder, eventType:GameEventType) {
   builder.addFieldInt8(0, eventType, GameEventType.RemotePeerJoined);
 }
 
-static addPlayerId(builder:flatbuffers.Builder, playerIdOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(1, playerIdOffset, 0);
+static addPlayerDataList(builder:flatbuffers.Builder, playerDataListOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(1, playerDataListOffset, 0);
 }
 
-static addPlayerPosition(builder:flatbuffers.Builder, playerPositionOffset:flatbuffers.Offset) {
-  builder.addFieldStruct(2, playerPositionOffset, 0);
+static startPlayerDataListVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(12, numElems, 4);
 }
 
 static endGameEvent(builder:flatbuffers.Builder):flatbuffers.Offset {
@@ -62,4 +60,10 @@ static endGameEvent(builder:flatbuffers.Builder):flatbuffers.Offset {
   return offset;
 }
 
+static createGameEvent(builder:flatbuffers.Builder, eventType:GameEventType, playerDataListOffset:flatbuffers.Offset):flatbuffers.Offset {
+  GameEvent.startGameEvent(builder);
+  GameEvent.addEventType(builder, eventType);
+  GameEvent.addPlayerDataList(builder, playerDataListOffset);
+  return GameEvent.endGameEvent(builder);
+}
 }

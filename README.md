@@ -1,8 +1,8 @@
 # demo-game-server-rust
 
 
-`flatc --rust game_schema.fbs`
+`flatc --rust -o src/ game_schema.fbs`
 
 
-`flatc --ts game_schema.fbs`
+`flatc --ts -o client/src/gen game_schema.fbs`
 

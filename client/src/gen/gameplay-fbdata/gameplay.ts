@@ -2,8 +2,8 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { PlayerControl } from './player-control';
-import { PlayerPosition } from './player-position';
+import { PlayerControl } from '../gameplay-fbdata/player-control';
+import { Vec2 } from '../gameplay-fbdata/vec2';
 
 
 export class Gameplay {
@@ -29,16 +29,14 @@ playerControls(obj?:PlayerControl):PlayerControl|null {
   return offset ? (obj || new PlayerControl()).__init(this.bb_pos + offset, this.bb!) : null;
 }
 
-playerPosition(obj?:PlayerPosition):PlayerPosition|null {
+playerPosition(obj?:Vec2):Vec2|null {
   const offset = this.bb!.__offset(this.bb_pos, 6);
-  return offset ? (obj || new PlayerPosition()).__init(this.bb_pos + offset, this.bb!) : null;
+  return offset ? (obj || new Vec2()).__init(this.bb_pos + offset, this.bb!) : null;
 }
 
-playerId():string|null
-playerId(optionalEncoding:flatbuffers.Encoding):string|Uint8Array|null
-playerId(optionalEncoding?:any):string|Uint8Array|null {
+playerId():number {
   const offset = this.bb!.__offset(this.bb_pos, 8);
-  return offset ? this.bb!.__string(this.bb_pos + offset, optionalEncoding) : null;
+  return offset ? this.bb!.readUint8(this.bb_pos + offset) : 0;
 }
 
 static startGameplay(builder:flatbuffers.Builder) {
@@ -53,8 +51,8 @@ static addPlayerPosition(builder:flatbuffers.Builder, playerPositionOffset:flatb
   builder.addFieldStruct(1, playerPositionOffset, 0);
 }
 
-static addPlayerId(builder:flatbuffers.Builder, playerIdOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(2, playerIdOffset, 0);
+static addPlayerId(builder:flatbuffers.Builder, playerId:number) {
+  builder.addFieldInt8(2, playerId, 0);
 }
 
 static endGameplay(builder:flatbuffers.Builder):flatbuffers.Offset {

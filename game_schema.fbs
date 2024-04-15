@@ -7,23 +7,27 @@ struct PlayerControl {
   right: bool;
 }
 
-struct PlayerPosition {
-  x: float;
-  y: float;
+struct Vec2 {
+  x: float32;
+  y: float32;
+}
+
+struct PlayerData {
+  player_id: uint32;
+  player_position: Vec2;
 }
 
 table Gameplay {
   player_controls: PlayerControl;
-  player_position: PlayerPosition;
-  player_id: string;
+  player_position: Vec2;
+  player_id: uint32;
 }
 
 enum GameEventType: byte { RemotePeerJoined, RemotePeerLeft, RemotePeerPositionUpdate, GameWorldUpdate }
 
 table GameEvent {
   event_type: GameEventType;
-  player_id: string;
-  player_position: PlayerPosition;
+  player_data_list: [PlayerData];
 }
 
 root_type Gameplay;

@@ -1,11 +1,11 @@
-use flatbuffers::FlatBufferBuilder;
-use crate::game_schema_generated::gameplay_fbdata::{GameEvent, GameEventArgs, GameEventType, Gameplay, GameplayArgs, PlayerControl, PlayerPosition, root_as_gameplay};
+use flatbuffers::{FlatBufferBuilder};
+use crate::game_schema_generated::gameplay_fbdata::{GameEvent, GameEventArgs, GameEventType, PlayerControl, PlayerData, root_as_gameplay, Vec2};
 use crate::game_server::peer::{ClientControls, ClientData, ClientPosition};
 
 pub fn read_gameplay_data(buf: &[u8]) -> ClientData {
     let gameplay = root_as_gameplay(buf).unwrap();
     let player_controls = gameplay.player_controls().unwrap_or_else(|| &PlayerControl([0; 4]));
-    let player_position = gameplay.player_position().unwrap_or_else(|| &PlayerPosition([0; 8]));
+    let player_position = gameplay.player_position().unwrap_or_else(|| &Vec2([0; 8]));
 
     ClientData {
         player_position: ClientPosition {
@@ -34,12 +34,13 @@ pub fn create_peer_position_bytes(player_id: usize, player_position: ClientPosit
     // Create a temporary `UserArgs` object to build a `User` object.
     // (Note how we call `bldr.create_string` to create the UTF-8 string
     // ergonomically.)
-    let player_position = PlayerPosition::new(player_position.x, player_position.y);
+    let player_position = Vec2::new(player_position.x, player_position.y);
+    let player_data = PlayerData::new(player_id as u32, &player_position);
+    let player_data_list = bldr.create_vector(&[player_data]);
 
     let args = GameEventArgs {
         event_type: GameEventType::RemotePeerPositionUpdate,
-        player_id: Some(bldr.create_string(&*player_id.to_string())),
-        player_position: Option::from(&player_position),
+        player_data_list: Some(player_data_list)
     };
 
     // Call the `User::create` function with the `FlatBufferBuilder` and our
@@ -68,10 +69,12 @@ pub fn create_peer_left_bytes(player_id: usize) -> Vec<u8> {
     // Reset the `FlatBufferBuilder` to a clean state.
     bldr.reset();
 
+    let player_data = PlayerData::new(player_id as u32, &Vec2::default());
+    let player_data_list = bldr.create_vector(&[player_data]);
+
     let args = GameEventArgs {
         event_type: GameEventType::RemotePeerLeft,
-        player_id: Some(bldr.create_string(&*player_id.to_string())),
-        player_position: None
+        player_data_list: Some(player_data_list)
     };
 
     // Call the `User::create` function with the `FlatBufferBuilder` and our
@@ -100,10 +103,18 @@ pub fn create_peer_joined_bytes(player_id: usize) -> Vec<u8> {
     // Reset the `FlatBufferBuilder` to a clean state.
     bldr.reset();
 
+    // let args = GameEventArgs {
+    //     event_type: GameEventType::RemotePeerJoined,
+    //     player_id: Some(bldr.create_string(&*player_id.to_string())),
+    //     player_position: None
+    // };
+
+    let player_data = PlayerData::new(player_id as u32, &Vec2::default());
+    let player_data_list = bldr.create_vector(&[player_data]);
+
     let args = GameEventArgs {
         event_type: GameEventType::RemotePeerJoined,
-        player_id: Some(bldr.create_string(&*player_id.to_string())),
-        player_position: None
+        player_data_list: Some(player_data_list)
     };
 
     // Call the `User::create` function with the `FlatBufferBuilder` and our

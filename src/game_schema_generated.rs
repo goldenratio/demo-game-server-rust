@@ -299,49 +299,49 @@ impl<'a> PlayerControl {
 
 }
 
-// struct PlayerPosition, aligned to 4
+// struct Vec2, aligned to 4
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq)]
-pub struct PlayerPosition(pub [u8; 8]);
-impl Default for PlayerPosition { 
+pub struct Vec2(pub [u8; 8]);
+impl Default for Vec2 { 
   fn default() -> Self { 
     Self([0; 8])
   }
 }
-impl core::fmt::Debug for PlayerPosition {
+impl core::fmt::Debug for Vec2 {
   fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
-    f.debug_struct("PlayerPosition")
+    f.debug_struct("Vec2")
       .field("x", &self.x())
       .field("y", &self.y())
       .finish()
   }
 }
 
-impl flatbuffers::SimpleToVerifyInSlice for PlayerPosition {}
-impl<'a> flatbuffers::Follow<'a> for PlayerPosition {
-  type Inner = &'a PlayerPosition;
+impl flatbuffers::SimpleToVerifyInSlice for Vec2 {}
+impl<'a> flatbuffers::Follow<'a> for Vec2 {
+  type Inner = &'a Vec2;
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    <&'a PlayerPosition>::follow(buf, loc)
+    <&'a Vec2>::follow(buf, loc)
   }
 }
-impl<'a> flatbuffers::Follow<'a> for &'a PlayerPosition {
-  type Inner = &'a PlayerPosition;
+impl<'a> flatbuffers::Follow<'a> for &'a Vec2 {
+  type Inner = &'a Vec2;
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    flatbuffers::follow_cast_ref::<PlayerPosition>(buf, loc)
+    flatbuffers::follow_cast_ref::<Vec2>(buf, loc)
   }
 }
-impl<'b> flatbuffers::Push for PlayerPosition {
-    type Output = PlayerPosition;
+impl<'b> flatbuffers::Push for Vec2 {
+    type Output = Vec2;
     #[inline]
     unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
-        let src = ::core::slice::from_raw_parts(self as *const PlayerPosition as *const u8, Self::size());
+        let src = ::core::slice::from_raw_parts(self as *const Vec2 as *const u8, Self::size());
         dst.copy_from_slice(src);
     }
 }
 
-impl<'a> flatbuffers::Verifiable for PlayerPosition {
+impl<'a> flatbuffers::Verifiable for Vec2 {
   #[inline]
   fn run_verifier(
     v: &mut flatbuffers::Verifier, pos: usize
@@ -351,7 +351,7 @@ impl<'a> flatbuffers::Verifiable for PlayerPosition {
   }
 }
 
-impl<'a> PlayerPosition {
+impl<'a> Vec2 {
   #[allow(clippy::too_many_arguments)]
   pub fn new(
     x: f32,
@@ -423,6 +423,113 @@ impl<'a> PlayerPosition {
 
 }
 
+// struct PlayerData, aligned to 4
+#[repr(transparent)]
+#[derive(Clone, Copy, PartialEq)]
+pub struct PlayerData(pub [u8; 12]);
+impl Default for PlayerData { 
+  fn default() -> Self { 
+    Self([0; 12])
+  }
+}
+impl core::fmt::Debug for PlayerData {
+  fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+    f.debug_struct("PlayerData")
+      .field("player_id", &self.player_id())
+      .field("player_position", &self.player_position())
+      .finish()
+  }
+}
+
+impl flatbuffers::SimpleToVerifyInSlice for PlayerData {}
+impl<'a> flatbuffers::Follow<'a> for PlayerData {
+  type Inner = &'a PlayerData;
+  #[inline]
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    <&'a PlayerData>::follow(buf, loc)
+  }
+}
+impl<'a> flatbuffers::Follow<'a> for &'a PlayerData {
+  type Inner = &'a PlayerData;
+  #[inline]
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    flatbuffers::follow_cast_ref::<PlayerData>(buf, loc)
+  }
+}
+impl<'b> flatbuffers::Push for PlayerData {
+    type Output = PlayerData;
+    #[inline]
+    unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
+        let src = ::core::slice::from_raw_parts(self as *const PlayerData as *const u8, Self::size());
+        dst.copy_from_slice(src);
+    }
+}
+
+impl<'a> flatbuffers::Verifiable for PlayerData {
+  #[inline]
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
+    v.in_buffer::<Self>(pos)
+  }
+}
+
+impl<'a> PlayerData {
+  #[allow(clippy::too_many_arguments)]
+  pub fn new(
+    player_id: u32,
+    player_position: &Vec2,
+  ) -> Self {
+    let mut s = Self([0; 12]);
+    s.set_player_id(player_id);
+    s.set_player_position(player_position);
+    s
+  }
+
+  pub fn player_id(&self) -> u32 {
+    let mut mem = core::mem::MaybeUninit::<<u32 as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[0..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
+      );
+      mem.assume_init()
+    })
+  }
+
+  pub fn set_player_id(&mut self, x: u32) {
+    let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const _ as *const u8,
+        self.0[0..].as_mut_ptr(),
+        core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
+      );
+    }
+  }
+
+  pub fn player_position(&self) -> &Vec2 {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid struct in this slot
+    unsafe { &*(self.0[4..].as_ptr() as *const Vec2) }
+  }
+
+  #[allow(clippy::identity_op)]
+  pub fn set_player_position(&mut self, x: &Vec2) {
+    self.0[4..4 + 8].copy_from_slice(&x.0)
+  }
+
+}
+
 pub enum GameplayOffset {}
 #[derive(Copy, Clone, PartialEq)]
 
@@ -453,7 +560,7 @@ impl<'a> Gameplay<'a> {
     args: &'args GameplayArgs<'args>
   ) -> flatbuffers::WIPOffset<Gameplay<'bldr>> {
     let mut builder = GameplayBuilder::new(_fbb);
-    if let Some(x) = args.player_id { builder.add_player_id(x); }
+    builder.add_player_id(args.player_id);
     if let Some(x) = args.player_position { builder.add_player_position(x); }
     if let Some(x) = args.player_controls { builder.add_player_controls(x); }
     builder.finish()
@@ -468,18 +575,18 @@ impl<'a> Gameplay<'a> {
     unsafe { self._tab.get::<PlayerControl>(Gameplay::VT_PLAYER_CONTROLS, None)}
   }
   #[inline]
-  pub fn player_position(&self) -> Option<&'a PlayerPosition> {
+  pub fn player_position(&self) -> Option<&'a Vec2> {
     // Safety:
     // Created from valid Table for this object
     // which contains a valid value in this slot
-    unsafe { self._tab.get::<PlayerPosition>(Gameplay::VT_PLAYER_POSITION, None)}
+    unsafe { self._tab.get::<Vec2>(Gameplay::VT_PLAYER_POSITION, None)}
   }
   #[inline]
-  pub fn player_id(&self) -> Option<&'a str> {
+  pub fn player_id(&self) -> u32 {
     // Safety:
     // Created from valid Table for this object
     // which contains a valid value in this slot
-    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(Gameplay::VT_PLAYER_ID, None)}
+    unsafe { self._tab.get::<u32>(Gameplay::VT_PLAYER_ID, Some(0)).unwrap()}
   }
 }
 
@@ -491,16 +598,16 @@ impl flatbuffers::Verifiable for Gameplay<'_> {
     use self::flatbuffers::Verifiable;
     v.visit_table(pos)?
      .visit_field::<PlayerControl>("player_controls", Self::VT_PLAYER_CONTROLS, false)?
-     .visit_field::<PlayerPosition>("player_position", Self::VT_PLAYER_POSITION, false)?
-     .visit_field::<flatbuffers::ForwardsUOffset<&str>>("player_id", Self::VT_PLAYER_ID, false)?
+     .visit_field::<Vec2>("player_position", Self::VT_PLAYER_POSITION, false)?
+     .visit_field::<u32>("player_id", Self::VT_PLAYER_ID, false)?
      .finish();
     Ok(())
   }
 }
 pub struct GameplayArgs<'a> {
     pub player_controls: Option<&'a PlayerControl>,
-    pub player_position: Option<&'a PlayerPosition>,
-    pub player_id: Option<flatbuffers::WIPOffset<&'a str>>,
+    pub player_position: Option<&'a Vec2>,
+    pub player_id: u32,
 }
 impl<'a> Default for GameplayArgs<'a> {
   #[inline]
@@ -508,7 +615,7 @@ impl<'a> Default for GameplayArgs<'a> {
     GameplayArgs {
       player_controls: None,
       player_position: None,
-      player_id: None,
+      player_id: 0,
     }
   }
 }
@@ -523,12 +630,12 @@ impl<'a: 'b, 'b> GameplayBuilder<'a, 'b> {
     self.fbb_.push_slot_always::<&PlayerControl>(Gameplay::VT_PLAYER_CONTROLS, player_controls);
   }
   #[inline]
-  pub fn add_player_position(&mut self, player_position: &PlayerPosition) {
-    self.fbb_.push_slot_always::<&PlayerPosition>(Gameplay::VT_PLAYER_POSITION, player_position);
+  pub fn add_player_position(&mut self, player_position: &Vec2) {
+    self.fbb_.push_slot_always::<&Vec2>(Gameplay::VT_PLAYER_POSITION, player_position);
   }
   #[inline]
-  pub fn add_player_id(&mut self, player_id: flatbuffers::WIPOffset<&'b  str>) {
-    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Gameplay::VT_PLAYER_ID, player_id);
+  pub fn add_player_id(&mut self, player_id: u32) {
+    self.fbb_.push_slot::<u32>(Gameplay::VT_PLAYER_ID, player_id, 0);
   }
   #[inline]
   pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> GameplayBuilder<'a, 'b> {
@@ -571,8 +678,7 @@ impl<'a> flatbuffers::Follow<'a> for GameEvent<'a> {
 
 impl<'a> GameEvent<'a> {
   pub const VT_EVENT_TYPE: flatbuffers::VOffsetT = 4;
-  pub const VT_PLAYER_ID: flatbuffers::VOffsetT = 6;
-  pub const VT_PLAYER_POSITION: flatbuffers::VOffsetT = 8;
+  pub const VT_PLAYER_DATA_LIST: flatbuffers::VOffsetT = 6;
 
   #[inline]
   pub unsafe fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
@@ -584,8 +690,7 @@ impl<'a> GameEvent<'a> {
     args: &'args GameEventArgs<'args>
   ) -> flatbuffers::WIPOffset<GameEvent<'bldr>> {
     let mut builder = GameEventBuilder::new(_fbb);
-    if let Some(x) = args.player_position { builder.add_player_position(x); }
-    if let Some(x) = args.player_id { builder.add_player_id(x); }
+    if let Some(x) = args.player_data_list { builder.add_player_data_list(x); }
     builder.add_event_type(args.event_type);
     builder.finish()
   }
@@ -599,18 +704,11 @@ impl<'a> GameEvent<'a> {
     unsafe { self._tab.get::<GameEventType>(GameEvent::VT_EVENT_TYPE, Some(GameEventType::RemotePeerJoined)).unwrap()}
   }
   #[inline]
-  pub fn player_id(&self) -> Option<&'a str> {
+  pub fn player_data_list(&self) -> Option<flatbuffers::Vector<'a, PlayerData>> {
     // Safety:
     // Created from valid Table for this object
     // which contains a valid value in this slot
-    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(GameEvent::VT_PLAYER_ID, None)}
-  }
-  #[inline]
-  pub fn player_position(&self) -> Option<&'a PlayerPosition> {
-    // Safety:
-    // Created from valid Table for this object
-    // which contains a valid value in this slot
-    unsafe { self._tab.get::<PlayerPosition>(GameEvent::VT_PLAYER_POSITION, None)}
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, PlayerData>>>(GameEvent::VT_PLAYER_DATA_LIST, None)}
   }
 }
 
@@ -622,24 +720,21 @@ impl flatbuffers::Verifiable for GameEvent<'_> {
     use self::flatbuffers::Verifiable;
     v.visit_table(pos)?
      .visit_field::<GameEventType>("event_type", Self::VT_EVENT_TYPE, false)?
-     .visit_field::<flatbuffers::ForwardsUOffset<&str>>("player_id", Self::VT_PLAYER_ID, false)?
-     .visit_field::<PlayerPosition>("player_position", Self::VT_PLAYER_POSITION, false)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, PlayerData>>>("player_data_list", Self::VT_PLAYER_DATA_LIST, false)?
      .finish();
     Ok(())
   }
 }
 pub struct GameEventArgs<'a> {
     pub event_type: GameEventType,
-    pub player_id: Option<flatbuffers::WIPOffset<&'a str>>,
-    pub player_position: Option<&'a PlayerPosition>,
+    pub player_data_list: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, PlayerData>>>,
 }
 impl<'a> Default for GameEventArgs<'a> {
   #[inline]
   fn default() -> Self {
     GameEventArgs {
       event_type: GameEventType::RemotePeerJoined,
-      player_id: None,
-      player_position: None,
+      player_data_list: None,
     }
   }
 }
@@ -654,12 +749,8 @@ impl<'a: 'b, 'b> GameEventBuilder<'a, 'b> {
     self.fbb_.push_slot::<GameEventType>(GameEvent::VT_EVENT_TYPE, event_type, GameEventType::RemotePeerJoined);
   }
   #[inline]
-  pub fn add_player_id(&mut self, player_id: flatbuffers::WIPOffset<&'b  str>) {
-    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(GameEvent::VT_PLAYER_ID, player_id);
-  }
-  #[inline]
-  pub fn add_player_position(&mut self, player_position: &PlayerPosition) {
-    self.fbb_.push_slot_always::<&PlayerPosition>(GameEvent::VT_PLAYER_POSITION, player_position);
+  pub fn add_player_data_list(&mut self, player_data_list: flatbuffers::WIPOffset<flatbuffers::Vector<'b , PlayerData>>) {
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(GameEvent::VT_PLAYER_DATA_LIST, player_data_list);
   }
   #[inline]
   pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> GameEventBuilder<'a, 'b> {
@@ -680,8 +771,7 @@ impl core::fmt::Debug for GameEvent<'_> {
   fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
     let mut ds = f.debug_struct("GameEvent");
       ds.field("event_type", &self.event_type());
-      ds.field("player_id", &self.player_id());
-      ds.field("player_position", &self.player_position());
+      ds.field("player_data_list", &self.player_data_list());
       ds.finish()
   }
 }
