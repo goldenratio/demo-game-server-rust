@@ -15,7 +15,7 @@ export class PlayerData {
 }
 
 playerId():number {
-  return this.bb!.readUint8(this.bb_pos);
+  return this.bb!.readUint32(this.bb_pos);
 }
 
 playerPosition(obj?:Vec2):Vec2|null {
@@ -31,8 +31,7 @@ static createPlayerData(builder:flatbuffers.Builder, player_id: number, player_p
   builder.prep(4, 8);
   builder.writeFloat32(player_position_y);
   builder.writeFloat32(player_position_x);
-  builder.pad(3);
-  builder.writeInt8(player_id);
+  builder.writeInt32(player_id);
   return builder.offset();
 }
 

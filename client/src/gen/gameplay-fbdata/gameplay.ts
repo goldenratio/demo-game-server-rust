@@ -36,7 +36,7 @@ playerPosition(obj?:Vec2):Vec2|null {
 
 playerId():number {
   const offset = this.bb!.__offset(this.bb_pos, 8);
-  return offset ? this.bb!.readUint8(this.bb_pos + offset) : 0;
+  return offset ? this.bb!.readUint32(this.bb_pos + offset) : 0;
 }
 
 static startGameplay(builder:flatbuffers.Builder) {
@@ -52,7 +52,7 @@ static addPlayerPosition(builder:flatbuffers.Builder, playerPositionOffset:flatb
 }
 
 static addPlayerId(builder:flatbuffers.Builder, playerId:number) {
-  builder.addFieldInt8(2, playerId, 0);
+  builder.addFieldInt32(2, playerId, 0);
 }
 
 static endGameplay(builder:flatbuffers.Builder):flatbuffers.Offset {
