@@ -27,7 +27,6 @@ pub struct ClientData {
 
 pub struct Peer {
     /// unique session id
-    /// id is assigned when connection is established
     pub id: usize,
 
     pub heart_beat: Instant,
@@ -36,7 +35,16 @@ pub struct Peer {
     pub game_server_addr: Addr<game_server::GameServer>,
 }
 
-impl Peer {}
+impl Peer {
+    pub fn create(game_server_addr: Addr<game_server::GameServer>) -> Self {
+        Self {
+            /// id is re-assigned when connection is established
+            id: 0,
+            heart_beat: Instant::now(),
+            game_server_addr
+        }
+    }
+}
 
 impl Actor for Peer {
     type Context = ws::WebsocketContext<Self>;

@@ -1,4 +1,3 @@
-use std::time::Instant;
 use crate::game_server::game_server::GameServer;
 use crate::game_server::peer::Peer;
 use actix::Addr;
@@ -12,11 +11,7 @@ pub async fn create_ws(
 ) -> Result<HttpResponse, Error> {
     let game_server_addr = srv.get_ref().clone();
     ws::start(
-        Peer {
-            id: 0,
-            heart_beat: Instant::now(),
-            game_server_addr,
-        },
+        Peer::create(game_server_addr),
         &req,
         stream,
     )
