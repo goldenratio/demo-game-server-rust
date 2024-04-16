@@ -24,9 +24,10 @@ impl GameServer {
         }
     }
 
-    pub fn send_position_to_other_players(&self, data: PeerPlayerData, skip_id: usize) {
+    pub fn send_position_to_other_players(&self, data: PeerPlayerData, skip_id: Option<usize>) {
+        let skip_id_value = skip_id.unwrap_or_else(|| 0);
         for id in self.peer_addr_map.keys() {
-            if *id != skip_id {
+            if *id != skip_id_value {
                 if let Some(addr) = self.peer_addr_map.get(id) {
                     addr.do_send(data.clone());
                 }
@@ -57,7 +58,7 @@ impl Handler<Connect> for GameServer {
         // send message to other users
         self.send_position_to_other_players(PeerPlayerData::RemotePeerJoined {
             player_id: id
-        }, id);
+        }, Option::from(id));
 
         // send world update to current peer
         let world_data = self.game_world.get_world_update(id);
@@ -80,7 +81,7 @@ impl Handler<Disconnect> for GameServer {
             // send message to other users
             self.send_position_to_other_players(PeerPlayerData::RemotePeerLeft {
                 player_id: msg.id
-            }, 0);
+            }, None);
 
             self.game_world.remove_player(msg.id);
             self.players_online_count.fetch_sub(1, Ordering::SeqCst);
@@ -97,6 +98,6 @@ impl Handler<PeerPlayerPositionUpdate> for GameServer {
             player_id: msg.player_id,
         };
         self.game_world.update_player_position(msg.player_id, msg.player_position.x, msg.player_position.y);
-        self.send_position_to_other_players(player_position_update, msg.player_id);
+        self.send_position_to_other_players(player_position_update, Option::from(msg.player_id));
     }
 }
