@@ -2,7 +2,7 @@ use std::time::Instant;
 use crate::game_server::game_server;
 use actix::{Actor, ActorContext, ActorFutureExt, Addr, AsyncContext, ContextFutureSpawner, fut, Handler, Running, StreamHandler, WrapFuture};
 use actix_web_actors::ws;
-use crate::game_server::flatbuffers_utils::{create_peer_joined_bytes, create_peer_left_bytes, create_peer_position_bytes, read_gameplay_data};
+use crate::game_server::flatbuffers_utils::{create_peer_joined_bytes, create_peer_left_bytes, create_peer_position_bytes, create_world_update_bytes, read_gameplay_data};
 use crate::game_server::message_types::{Connect, Disconnect, PeerPlayerData, PeerPlayerPositionUpdate};
 
 #[derive(Debug)]
@@ -91,7 +91,8 @@ impl Handler<PeerPlayerData> for Peer {
                 ctx.binary(bytes);
             }
             PeerPlayerData::WorldUpdate { world_data } => {
-                println!("send world update to peer {:?} {:?}", self.id, world_data);
+                let bytes = create_world_update_bytes(world_data);
+                ctx.binary(bytes);
             }
         }
     }

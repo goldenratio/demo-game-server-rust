@@ -60,7 +60,7 @@ impl Handler<Connect> for GameServer {
         }, id);
 
         // send world update to current peer
-        let world_data = self.game_world.get_world_update();
+        let world_data = self.game_world.get_world_update(id);
         if let Some(addr) = self.peer_addr_map.get(&id) {
             addr.do_send(PeerPlayerData::WorldUpdate { world_data });
         }

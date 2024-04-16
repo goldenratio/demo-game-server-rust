@@ -29,12 +29,12 @@ export class PeerPlayerDisplaySystem extends System {
     const ghost = new GhostPlayerManager(this._container);
     this._disposeBag.add(ghost);
 
-    this._disposeBag.completable$(this._commsManager.peerPlayerUpdate$).subscribe(data => {
-      ghost.updatePeerPlayerPosition(data.playerId, data.x, data.y);
+    this._disposeBag.completable$(this._commsManager.peerPlayerUpdate$).subscribe(playerData => {
+      playerData.forEach(data => ghost.updatePeerPlayerPosition(data.playerId, data.x, data.y));
     });
 
-    this._disposeBag.completable$(this._commsManager.removePeerPlayer$).subscribe(data => {
-      ghost.removePeerPlayer(data.playerId);
+    this._disposeBag.completable$(this._commsManager.removePeerPlayer$).subscribe(playerData => {
+      playerData.forEach(data => ghost.removePeerPlayer(data.playerId));
     });
   }
 }

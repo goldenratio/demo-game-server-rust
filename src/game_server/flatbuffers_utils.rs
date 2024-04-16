@@ -1,5 +1,6 @@
 use flatbuffers::{FlatBufferBuilder};
 use crate::game_schema_generated::gameplay_fbdata::{GameEvent, GameEventArgs, GameEventType, PlayerControl, PlayerData, root_as_gameplay, Vec2};
+use crate::game_server::game_world::PeerPlayerInfo;
 use crate::game_server::peer::{ClientControls, ClientData, ClientPosition};
 
 pub fn read_gameplay_data(buf: &[u8]) -> ClientData {
@@ -115,6 +116,51 @@ pub fn create_peer_joined_bytes(player_id: usize) -> Vec<u8> {
     let args = GameEventArgs {
         event_type: GameEventType::RemotePeerJoined,
         player_data_list: Some(player_data_list)
+    };
+
+    // Call the `User::create` function with the `FlatBufferBuilder` and our
+    // UserArgs object, to serialize the data to the FlatBuffer. The returned
+    // value is an offset used to track the location of this serializaed data.
+    let user_offset = GameEvent::create(&mut bldr, &args);
+
+    // Finish the write operation by calling the generated function
+    // `finish_user_buffer` with the `user_offset` created by `User::create`.
+    bldr.finish(user_offset, None);
+
+    // Copy the serialized FlatBuffers data to our own byte buffer.
+    let finished_data = bldr.finished_data();
+    bytes.extend_from_slice(finished_data);
+
+    bytes
+}
+
+pub fn create_world_update_bytes(world_data: Vec<PeerPlayerInfo>) -> Vec<u8> {
+    let mut bldr = FlatBufferBuilder::new();
+    let mut bytes: Vec<u8> = Vec::new();
+
+    // Reset the `bytes` Vec to a clean state.
+    bytes.clear();
+
+    // Reset the `FlatBufferBuilder` to a clean state.
+    bldr.reset();
+
+    // Create a temporary `UserArgs` object to build a `User` object.
+    // (Note how we call `bldr.create_string` to create the UTF-8 string
+    // ergonomically.)
+    // let player_position = Vec2::new(player_position.x, player_position.y);
+    // let player_data = PlayerData::new(player_id as u32, &player_position);
+
+    let player_data_list = world_data.iter().map(|data| {
+        let player_position = Vec2::new(data.x, data.y);
+        let player_data = PlayerData::new(data.player_id as u32, &player_position);
+        player_data
+    }).collect::<Vec<PlayerData>>();
+
+    let player_data_vec = bldr.create_vector(&player_data_list);
+
+    let args = GameEventArgs {
+        event_type: GameEventType::GameWorldUpdate,
+        player_data_list: Some(player_data_vec)
     };
 
     // Call the `User::create` function with the `FlatBufferBuilder` and our

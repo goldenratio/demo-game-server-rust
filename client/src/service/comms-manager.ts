@@ -1,7 +1,7 @@
 import {Disposable, DisposeBag} from '../utils/dispose-bag';
 import {fromEvent, Observable, ReplaySubject, Subject} from 'rxjs';
 import {Builder, ByteBuffer} from "flatbuffers";
-import {GameEvent, GameEventType, Gameplay, PlayerControl, PlayerPosition} from "../gen/gameplay-fbdata";
+import {GameEvent, GameEventType, Gameplay, PlayerControl, Vec2} from "../gen/gameplay-fbdata";
 
 interface PeerPlayerUpdate {
   readonly playerId: string;
@@ -11,8 +11,8 @@ interface PeerPlayerUpdate {
 
 export class CommsManager implements Disposable {
 	private readonly _connectedSubject$ = new ReplaySubject<void>(1);
-  private readonly _opponentPlayerUpdateSubject$ = new Subject<PeerPlayerUpdate>();
-  private readonly _removePeerPlayerSubject$ = new Subject<{ readonly playerId: string }>();
+  private readonly _opponentPlayerUpdateSubject$ = new Subject<ReadonlyArray<PeerPlayerUpdate>>();
+  private readonly _removePeerPlayerSubject$ = new Subject<ReadonlyArray<{ readonly playerId: string }>>();
 	private readonly _disposeBag = new DisposeBag();
   private readonly _socket: WebSocket;
 
@@ -44,21 +44,56 @@ export class CommsManager implements Disposable {
       const eventType = gameEvent.eventType();
 
       if (eventType === GameEventType.RemotePeerPositionUpdate) {
-        const pos = gameEvent.playerPosition();
-        this._opponentPlayerUpdateSubject$.next({
-          playerId: gameEvent.playerId(),
-          x: pos.x(),
-          y: pos.y()
-        })
+        const playerUpdateList = Array
+          .from({ length: gameEvent.playerDataListLength() })
+          .map((_, index) => {
+            const playerData = gameEvent.playerDataList(index);
+            const pos = playerData.playerPosition();
+            const update: PeerPlayerUpdate = {
+              playerId: playerData.playerId().toString(),
+              x: pos.x(),
+              y: pos.y()
+            };
+            return update;
+          });
+        this._opponentPlayerUpdateSubject$.next(playerUpdateList);
       } else if (eventType === GameEventType.RemotePeerLeft) {
-        const playerId = gameEvent.playerId();
-        console.log('Remote player left: ', playerId);
-        this._removePeerPlayerSubject$.next({
-          playerId: playerId
-        });
+        const playerUpdateList = Array
+          .from({ length: gameEvent.playerDataListLength() })
+          .map((_, index) => {
+            const playerData = gameEvent.playerDataList(index);
+            return {
+              playerId: playerData.playerId().toString()
+            };
+          });
+
+        console.log('Remote player left: ', playerUpdateList);
+        this._removePeerPlayerSubject$.next(playerUpdateList);
       } else if (eventType === GameEventType.RemotePeerJoined) {
-        const playerId = gameEvent.playerId();
-        console.log('Remote player joined: ', playerId);
+        const playerUpdateList = Array
+          .from({ length: gameEvent.playerDataListLength() })
+          .map((_, index) => {
+            const playerData = gameEvent.playerDataList(index);
+            return {
+              playerId: playerData.playerId().toString()
+            };
+          });
+
+        console.log('Remote player joined: ', playerUpdateList);
+      } else if (eventType === GameEventType.GameWorldUpdate) {
+        const playerUpdateList = Array
+          .from({ length: gameEvent.playerDataListLength() })
+          .map((_, index) => {
+            const playerData = gameEvent.playerDataList(index);
+            const pos = playerData.playerPosition();
+            const update: PeerPlayerUpdate = {
+              playerId: playerData.playerId().toString(),
+              x: pos.x(),
+              y: pos.y()
+            };
+            return update;
+          });
+        this._opponentPlayerUpdateSubject$.next(playerUpdateList);
       }
     });
 
@@ -99,11 +134,11 @@ export class CommsManager implements Disposable {
 		return this._connectedSubject$.asObservable();
 	}
 
-  get peerPlayerUpdate$(): Observable<PeerPlayerUpdate> {
+  get peerPlayerUpdate$(): Observable<ReadonlyArray<PeerPlayerUpdate>> {
     return this._opponentPlayerUpdateSubject$.asObservable();
   }
 
-  get removePeerPlayer$(): Observable<{ readonly playerId: string }> {
+  get removePeerPlayer$(): Observable<ReadonlyArray<{ readonly playerId: string }>> {
     return this._removePeerPlayerSubject$.asObservable();
   }
 
@@ -121,13 +156,13 @@ export class CommsManager implements Disposable {
     const builder = new Builder(0);
     builder.clear();
 
-    const playerIdOffset = builder.createString('2121');
+    // const playerIdOffset = builder.createString('2121');
 
     Gameplay.startGameplay(builder);
 
     Gameplay.addPlayerControls(builder, PlayerControl.createPlayerControl(builder, this._isUp, this._isDown, this._isLeft, this._isRight));
-    Gameplay.addPlayerPosition(builder, PlayerPosition.createPlayerPosition(builder, this._posX, this._posY));
-    Gameplay.addPlayerId(builder, playerIdOffset);
+    Gameplay.addPlayerPosition(builder, Vec2.createVec2(builder, this._posX, this._posY));
+    Gameplay.addPlayerId(builder, 1213232);
 
     const offset = Gameplay.endGameplay(builder);
     builder.finish(offset);

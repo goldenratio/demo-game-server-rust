@@ -2,9 +2,9 @@ use std::collections::HashMap;
 
 #[derive(Debug, Copy, Clone)]
 pub struct PeerPlayerInfo {
-    player_id: usize,
-    x: f32,
-    y: f32
+    pub player_id: usize,
+    pub x: f32,
+    pub y: f32
 }
 
 #[derive(Debug)]
@@ -40,7 +40,11 @@ impl GameWorld {
         });
     }
 
-    pub fn get_world_update(&self) -> Vec<PeerPlayerInfo> {
-        self.player_map.values().cloned().collect::<Vec<PeerPlayerInfo>>()
+    pub fn get_world_update(&self, skip_id: usize) -> Vec<PeerPlayerInfo> {
+        self.player_map
+            .values()
+            .filter(|&x| x.player_id != skip_id)
+            .cloned()
+            .collect::<Vec<PeerPlayerInfo>>()
     }
 }
