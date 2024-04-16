@@ -82,6 +82,8 @@ impl Handler<Disconnect> for GameServer {
                 player_id: msg.id
             }, 0);
 
+            self.game_world.remove_player(msg.id);
+            self.players_online_count.fetch_sub(1, Ordering::SeqCst);
         }
     }
 }
