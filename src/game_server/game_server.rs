@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::{HashMap};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use actix::prelude::*;
@@ -76,14 +76,12 @@ impl Handler<Disconnect> for GameServer {
     fn handle(&mut self, msg: Disconnect, _: &mut Self::Context) -> Self::Result {
         println!("Someone disconnected!");
         // remove peer address
-        if let _ = self.peer_addr_map.remove(&msg.id) {
+        if let Some(_) = self.peer_addr_map.remove(&msg.id) {
             // send message to other users
             self.send_position_to_other_players(PeerPlayerData::RemotePeerLeft {
                 player_id: msg.id
             }, 0);
 
-            self.game_world.remove_player(msg.id);
-            self.players_online_count.fetch_sub(1, Ordering::SeqCst);
         }
     }
 }

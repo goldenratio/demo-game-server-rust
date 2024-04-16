@@ -26,6 +26,7 @@ export class PeerPlayerDisplaySystem extends System {
     super.addedToWorld(world);
     this._disposeBag = new DisposeBag();
 
+    console.log('PeerPlayerDisplaySystem::addToWorld!');
     const ghost = new GhostPlayerManager(this._container);
     this._disposeBag.add(ghost);
 

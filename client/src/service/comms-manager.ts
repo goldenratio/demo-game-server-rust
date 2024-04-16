@@ -11,7 +11,7 @@ interface PeerPlayerUpdate {
 
 export class CommsManager implements Disposable {
 	private readonly _connectedSubject$ = new ReplaySubject<void>(1);
-  private readonly _opponentPlayerUpdateSubject$ = new Subject<ReadonlyArray<PeerPlayerUpdate>>();
+  private readonly _opponentPlayerUpdateSubject$ = new ReplaySubject<ReadonlyArray<PeerPlayerUpdate>>(1);
   private readonly _removePeerPlayerSubject$ = new Subject<ReadonlyArray<{ readonly playerId: string }>>();
 	private readonly _disposeBag = new DisposeBag();
   private readonly _socket: WebSocket;
@@ -93,6 +93,7 @@ export class CommsManager implements Disposable {
             };
             return update;
           });
+        console.log('GameWorldUpdate: ', playerUpdateList);
         this._opponentPlayerUpdateSubject$.next(playerUpdateList);
       }
     });
