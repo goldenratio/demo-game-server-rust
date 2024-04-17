@@ -1,8 +1,8 @@
 import { System, TickerDataLike } from 'super-ecs';
-import { KeyboardControlsComponent, PositionComponent } from '../components';
+import { PlayerControlsComponent, PositionComponent } from '../components';
 import {CommsManager} from "../service";
 
-export class KeyboardMovementSystem extends System {
+export class PlayerMovementSystem extends System {
 	private readonly _stageWidth: number;
 	private readonly _stageHeight: number;
   private readonly _service: CommsManager;
@@ -15,7 +15,7 @@ export class KeyboardMovementSystem extends System {
 	}
 
 	update(tickerData: TickerDataLike): void {
-		const entities = this.world.getEntities([PositionComponent.TYPE, KeyboardControlsComponent.TYPE]);
+		const entities = this.world.getEntities([PositionComponent.TYPE, PlayerControlsComponent.TYPE]);
 
 		if (entities.length === 0) {
 			return;
@@ -28,7 +28,7 @@ export class KeyboardMovementSystem extends System {
     }
 
     const positionComponent = entity.getComponent<PositionComponent>(PositionComponent.TYPE);
-    const keyboardControlsComponent = entity.getComponent<KeyboardControlsComponent>(KeyboardControlsComponent.TYPE);
+    const keyboardControlsComponent = entity.getComponent<PlayerControlsComponent>(PlayerControlsComponent.TYPE);
 
     if (positionComponent && keyboardControlsComponent) {
       const speed = keyboardControlsComponent.speed;

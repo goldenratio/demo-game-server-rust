@@ -11,8 +11,9 @@ interface PeerPlayerUpdate {
 
 export class CommsManager implements Disposable {
 	private readonly _connectedSubject$ = new ReplaySubject<void>(1);
-  private readonly _opponentPlayerUpdateSubject$ = new ReplaySubject<ReadonlyArray<PeerPlayerUpdate>>(1);
-  private readonly _removePeerPlayerSubject$ = new Subject<ReadonlyArray<{ readonly playerId: string }>>();
+  private readonly _peerPlayerUpdateSubject$ = new ReplaySubject<ReadonlyArray<PeerPlayerUpdate>>(1);
+  private readonly _peerPlayerLeftSubject$ = new Subject<ReadonlyArray<{ readonly playerId: string }>>();
+  private readonly _peerPlayerJoinedSubject$ = new Subject<ReadonlyArray<{ readonly playerId: string }>>();
 	private readonly _disposeBag = new DisposeBag();
   private readonly _socket: WebSocket;
 
@@ -56,7 +57,7 @@ export class CommsManager implements Disposable {
             };
             return update;
           });
-        this._opponentPlayerUpdateSubject$.next(playerUpdateList);
+        this._peerPlayerUpdateSubject$.next(playerUpdateList);
       } else if (eventType === GameEventType.RemotePeerLeft) {
         const playerUpdateList = Array
           .from({ length: gameEvent.playerDataListLength() })
@@ -68,7 +69,7 @@ export class CommsManager implements Disposable {
           });
 
         console.log('Remote player left: ', playerUpdateList);
-        this._removePeerPlayerSubject$.next(playerUpdateList);
+        this._peerPlayerLeftSubject$.next(playerUpdateList);
       } else if (eventType === GameEventType.RemotePeerJoined) {
         const playerUpdateList = Array
           .from({ length: gameEvent.playerDataListLength() })
@@ -80,6 +81,7 @@ export class CommsManager implements Disposable {
           });
 
         console.log('Remote player joined: ', playerUpdateList);
+        this._peerPlayerJoinedSubject$.next(playerUpdateList);
       } else if (eventType === GameEventType.GameWorldUpdate) {
         const playerUpdateList = Array
           .from({ length: gameEvent.playerDataListLength() })
@@ -94,7 +96,7 @@ export class CommsManager implements Disposable {
             return update;
           });
         console.log('GameWorldUpdate: ', playerUpdateList);
-        this._opponentPlayerUpdateSubject$.next(playerUpdateList);
+        this._peerPlayerUpdateSubject$.next(playerUpdateList);
       }
     });
 
@@ -136,11 +138,15 @@ export class CommsManager implements Disposable {
 	}
 
   get peerPlayerUpdate$(): Observable<ReadonlyArray<PeerPlayerUpdate>> {
-    return this._opponentPlayerUpdateSubject$.asObservable();
+    return this._peerPlayerUpdateSubject$.asObservable();
   }
 
-  get removePeerPlayer$(): Observable<ReadonlyArray<{ readonly playerId: string }>> {
-    return this._removePeerPlayerSubject$.asObservable();
+  get peerPlayerJoined$(): Observable<ReadonlyArray<{ readonly playerId: string }>> {
+    return this._peerPlayerJoinedSubject$.asObservable();
+  }
+
+  get peerPlayerLeft$(): Observable<ReadonlyArray<{ readonly playerId: string }>> {
+    return this._peerPlayerLeftSubject$.asObservable();
   }
 
   sendUpdates(): void {

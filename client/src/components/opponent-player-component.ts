@@ -4,7 +4,9 @@ export class OpponentPlayerComponent implements Component {
 	public static TYPE: symbol = Symbol('OpponentPlayerComponent');
 	public name: symbol = OpponentPlayerComponent.TYPE;
 
-	constructor(props?: ComponentProps<OpponentPlayerComponent>) {
-		// empty
-	}
+  public readonly playerId: string;
+
+	constructor(props: ComponentProps<OpponentPlayerComponent>) {
+		this.playerId = props.playerId;
+  }
 }

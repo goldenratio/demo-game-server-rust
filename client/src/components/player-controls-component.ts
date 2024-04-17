@@ -1,8 +1,8 @@
 import { Component, ComponentProps } from 'super-ecs';
 
-export class KeyboardControlsComponent implements Component {
+export class PlayerControlsComponent implements Component {
 	public static TYPE: symbol = Symbol('KeyboardControlsComponent');
-	public name: symbol = KeyboardControlsComponent.TYPE;
+	public name: symbol = PlayerControlsComponent.TYPE;
 
 	public isLeft: boolean = false;
 	public isRight: boolean = false;
@@ -11,7 +11,7 @@ export class KeyboardControlsComponent implements Component {
 
 	public speed: number = 6;
 
-	constructor(props?: ComponentProps<KeyboardControlsComponent>) {
+	constructor(props?: ComponentProps<PlayerControlsComponent>) {
 		// empty
 	}
 }

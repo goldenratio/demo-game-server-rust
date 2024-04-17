@@ -1,7 +1,7 @@
 import { Entity, System, World } from 'super-ecs';
 import { fromEvent } from 'rxjs';
 import { DisposeBag } from '../utils/dispose-bag';
-import { KeyboardControlsComponent } from '../components';
+import { PlayerControlsComponent } from '../components';
 
 export class KeyboardControlsSystem extends System {
 	private _disposeBag?: DisposeBag;
@@ -19,8 +19,8 @@ export class KeyboardControlsSystem extends System {
 
 		this._disposeBag = new DisposeBag();
 
-		this._disposeBag.completable$(world.entityAdded$([KeyboardControlsComponent.TYPE])).subscribe((entity: Entity) => {
-			const keyboardControlsComponent = entity.getComponent<KeyboardControlsComponent>(KeyboardControlsComponent.TYPE);
+		this._disposeBag.completable$(world.entityAdded$([PlayerControlsComponent.TYPE])).subscribe((entity: Entity) => {
+			const keyboardControlsComponent = entity.getComponent<PlayerControlsComponent>(PlayerControlsComponent.TYPE);
 			if (!keyboardControlsComponent) {
 				return;
 			}
