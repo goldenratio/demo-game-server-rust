@@ -429,13 +429,13 @@ impl<'a> Vec2 {
 
 }
 
-// struct PlayerData, aligned to 4
+// struct PlayerData, aligned to 8
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq)]
-pub struct PlayerData(pub [u8; 12]);
+pub struct PlayerData(pub [u8; 16]);
 impl Default for PlayerData { 
   fn default() -> Self { 
-    Self([0; 12])
+    Self([0; 16])
   }
 }
 impl core::fmt::Debug for PlayerData {
@@ -484,17 +484,17 @@ impl<'a> flatbuffers::Verifiable for PlayerData {
 impl<'a> PlayerData {
   #[allow(clippy::too_many_arguments)]
   pub fn new(
-    player_id: u32,
+    player_id: u64,
     player_position: &Vec2,
   ) -> Self {
-    let mut s = Self([0; 12]);
+    let mut s = Self([0; 16]);
     s.set_player_id(player_id);
     s.set_player_position(player_position);
     s
   }
 
-  pub fn player_id(&self) -> u32 {
-    let mut mem = core::mem::MaybeUninit::<<u32 as EndianScalar>::Scalar>::uninit();
+  pub fn player_id(&self) -> u64 {
+    let mut mem = core::mem::MaybeUninit::<<u64 as EndianScalar>::Scalar>::uninit();
     // Safety:
     // Created from a valid Table for this object
     // Which contains a valid value in this slot
@@ -502,13 +502,13 @@ impl<'a> PlayerData {
       core::ptr::copy_nonoverlapping(
         self.0[0..].as_ptr(),
         mem.as_mut_ptr() as *mut u8,
-        core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
+        core::mem::size_of::<<u64 as EndianScalar>::Scalar>(),
       );
       mem.assume_init()
     })
   }
 
-  pub fn set_player_id(&mut self, x: u32) {
+  pub fn set_player_id(&mut self, x: u64) {
     let x_le = x.to_little_endian();
     // Safety:
     // Created from a valid Table for this object
@@ -517,7 +517,7 @@ impl<'a> PlayerData {
       core::ptr::copy_nonoverlapping(
         &x_le as *const _ as *const u8,
         self.0[0..].as_mut_ptr(),
-        core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
+        core::mem::size_of::<<u64 as EndianScalar>::Scalar>(),
       );
     }
   }
@@ -526,12 +526,12 @@ impl<'a> PlayerData {
     // Safety:
     // Created from a valid Table for this object
     // Which contains a valid struct in this slot
-    unsafe { &*(self.0[4..].as_ptr() as *const Vec2) }
+    unsafe { &*(self.0[8..].as_ptr() as *const Vec2) }
   }
 
   #[allow(clippy::identity_op)]
   pub fn set_player_position(&mut self, x: &Vec2) {
-    self.0[4..4 + 8].copy_from_slice(&x.0)
+    self.0[8..8 + 8].copy_from_slice(&x.0)
   }
 
 }
@@ -781,11 +781,11 @@ impl<'a> RemotePeerLeft<'a> {
 
 
   #[inline]
-  pub fn player_id(&self) -> u32 {
+  pub fn player_id(&self) -> u64 {
     // Safety:
     // Created from valid Table for this object
     // which contains a valid value in this slot
-    unsafe { self._tab.get::<u32>(RemotePeerLeft::VT_PLAYER_ID, Some(0)).unwrap()}
+    unsafe { self._tab.get::<u64>(RemotePeerLeft::VT_PLAYER_ID, Some(0)).unwrap()}
   }
 }
 
@@ -796,13 +796,13 @@ impl flatbuffers::Verifiable for RemotePeerLeft<'_> {
   ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
     use self::flatbuffers::Verifiable;
     v.visit_table(pos)?
-     .visit_field::<u32>("player_id", Self::VT_PLAYER_ID, false)?
+     .visit_field::<u64>("player_id", Self::VT_PLAYER_ID, false)?
      .finish();
     Ok(())
   }
 }
 pub struct RemotePeerLeftArgs {
-    pub player_id: u32,
+    pub player_id: u64,
 }
 impl<'a> Default for RemotePeerLeftArgs {
   #[inline]
@@ -819,8 +819,8 @@ pub struct RemotePeerLeftBuilder<'a: 'b, 'b> {
 }
 impl<'a: 'b, 'b> RemotePeerLeftBuilder<'a, 'b> {
   #[inline]
-  pub fn add_player_id(&mut self, player_id: u32) {
-    self.fbb_.push_slot::<u32>(RemotePeerLeft::VT_PLAYER_ID, player_id, 0);
+  pub fn add_player_id(&mut self, player_id: u64) {
+    self.fbb_.push_slot::<u64>(RemotePeerLeft::VT_PLAYER_ID, player_id, 0);
   }
   #[inline]
   pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> RemotePeerLeftBuilder<'a, 'b> {

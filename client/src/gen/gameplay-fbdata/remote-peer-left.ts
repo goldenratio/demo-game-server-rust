@@ -20,17 +20,17 @@ static getSizePrefixedRootAsRemotePeerLeft(bb:flatbuffers.ByteBuffer, obj?:Remot
   return (obj || new RemotePeerLeft()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 }
 
-playerId():number {
+playerId():bigint {
   const offset = this.bb!.__offset(this.bb_pos, 4);
-  return offset ? this.bb!.readUint32(this.bb_pos + offset) : 0;
+  return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt('0');
 }
 
 static startRemotePeerLeft(builder:flatbuffers.Builder) {
   builder.startObject(1);
 }
 
-static addPlayerId(builder:flatbuffers.Builder, playerId:number) {
-  builder.addFieldInt32(0, playerId, 0);
+static addPlayerId(builder:flatbuffers.Builder, playerId:bigint) {
+  builder.addFieldInt64(0, playerId, BigInt('0'));
 }
 
 static endRemotePeerLeft(builder:flatbuffers.Builder):flatbuffers.Offset {
@@ -38,7 +38,7 @@ static endRemotePeerLeft(builder:flatbuffers.Builder):flatbuffers.Offset {
   return offset;
 }
 
-static createRemotePeerLeft(builder:flatbuffers.Builder, playerId:number):flatbuffers.Offset {
+static createRemotePeerLeft(builder:flatbuffers.Builder, playerId:bigint):flatbuffers.Offset {
   RemotePeerLeft.startRemotePeerLeft(builder);
   RemotePeerLeft.addPlayerId(builder, playerId);
   return RemotePeerLeft.endRemotePeerLeft(builder);

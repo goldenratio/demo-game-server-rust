@@ -36,7 +36,7 @@ pub fn create_peer_position_bytes(player_id: usize, player_position: ClientPosit
     // (Note how we call `bldr.create_string` to create the UTF-8 string
     // ergonomically.)
     let player_position = Vec2::new(player_position.x, player_position.y);
-    let player_data = PlayerData::new(player_id as u32, &player_position);
+    let player_data = PlayerData::new(player_id as u64, &player_position);
 
     let msg = RemotePeerPositionUpdate::create(&mut bldr, &RemotePeerPositionUpdateArgs {
         player_data: Option::from(&player_data)
@@ -74,7 +74,7 @@ pub fn create_peer_left_bytes(player_id: usize) -> Vec<u8> {
     bldr.reset();
 
     let msg = RemotePeerLeft::create(&mut bldr, &RemotePeerLeftArgs {
-        player_id: player_id as u32
+        player_id: player_id as u64
     }).as_union_value();
 
     let args = GameReponseEventArgs {
@@ -108,7 +108,7 @@ pub fn create_peer_joined_bytes(player_id: usize, player_position: ClientPositio
     // Reset the `FlatBufferBuilder` to a clean state.
     bldr.reset();
 
-    let player_data = PlayerData::new(player_id as u32, &Vec2::new(player_position.x, player_position.y));
+    let player_data = PlayerData::new(player_id as u64, &Vec2::new(player_position.x, player_position.y));
 
     let msg = RemotePeerJoined::create(&mut bldr, &RemotePeerJoinedArgs {
         player_data: Option::from(&player_data)
@@ -153,7 +153,7 @@ pub fn create_world_update_bytes(world_data: Vec<PeerPlayerInfo>) -> Vec<u8> {
 
     let player_data_list = world_data.iter().map(|data| {
         let player_position = Vec2::new(data.x, data.y);
-        let player_data = PlayerData::new(data.player_id as u32, &player_position);
+        let player_data = PlayerData::new(data.player_id as u64, &player_position);
         player_data
     }).collect::<Vec<PlayerData>>();
 

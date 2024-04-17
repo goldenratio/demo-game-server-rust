@@ -2,8 +2,8 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { PlayerControl } from '../gameplay-fbdata/player-control';
-import { Vec2 } from '../gameplay-fbdata/vec2';
+import { PlayerControl } from '../gameplay-fbdata/player-control.js';
+import { Vec2 } from '../gameplay-fbdata/vec2.js';
 
 
 export class Gameplay {

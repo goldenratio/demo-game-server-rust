@@ -48,13 +48,13 @@ impl Handler<Connect> for GameServer {
 
     /// triggered when an actor (peer) joined
     fn handle(&mut self, msg: Connect, _: &mut Context<Self>) -> Self::Result {
+        println!("Someone joined");
+
         // register session with random id
         let id = self.rng.gen::<usize>();
         self.peer_addr_map.insert(id, msg.peer_addr);
 
         self.game_world.add_player(id);
-
-        println!("Someone joined {:?} ", id);
 
         // send message to other users
         self.send_position_to_other_players(PeerPlayerData::RemotePeerJoined {

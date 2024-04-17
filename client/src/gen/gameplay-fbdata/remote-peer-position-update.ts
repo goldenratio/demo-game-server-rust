@@ -2,7 +2,7 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { PlayerData } from '../gameplay-fbdata/player-data';
+import { PlayerData } from '../gameplay-fbdata/player-data.js';
 
 
 export class RemotePeerPositionUpdate {

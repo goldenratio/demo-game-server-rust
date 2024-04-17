@@ -2,7 +2,7 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { PlayerData } from '../gameplay-fbdata/player-data';
+import { PlayerData } from '../gameplay-fbdata/player-data.js';
 
 
 export class GameWorldUpdate {
@@ -25,7 +25,7 @@ static getSizePrefixedRootAsGameWorldUpdate(bb:flatbuffers.ByteBuffer, obj?:Game
 
 playerDataList(index: number, obj?:PlayerData):PlayerData|null {
   const offset = this.bb!.__offset(this.bb_pos, 4);
-  return offset ? (obj || new PlayerData()).__init(this.bb!.__vector(this.bb_pos + offset) + index * 12, this.bb!) : null;
+  return offset ? (obj || new PlayerData()).__init(this.bb!.__vector(this.bb_pos + offset) + index * 16, this.bb!) : null;
 }
 
 playerDataListLength():number {
@@ -42,7 +42,7 @@ static addPlayerDataList(builder:flatbuffers.Builder, playerDataListOffset:flatb
 }
 
 static startPlayerDataListVector(builder:flatbuffers.Builder, numElems:number) {
-  builder.startVector(12, numElems, 4);
+  builder.startVector(16, numElems, 8);
 }
 
 static endGameWorldUpdate(builder:flatbuffers.Builder):flatbuffers.Offset {

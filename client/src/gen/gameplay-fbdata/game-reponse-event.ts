@@ -2,7 +2,7 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { ResponseMessage} from '../gameplay-fbdata/response-message';
+import { ResponseMessage, unionToResponseMessage, unionListToResponseMessage } from '../gameplay-fbdata/response-message.js';
 
 
 export class GameReponseEvent {

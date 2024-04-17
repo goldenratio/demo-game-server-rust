@@ -2,7 +2,7 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { Vec2 } from '../gameplay-fbdata/vec2';
+import { Vec2 } from '../gameplay-fbdata/vec2.js';
 
 
 export class PlayerData {
@@ -14,24 +14,24 @@ export class PlayerData {
   return this;
 }
 
-playerId():number {
-  return this.bb!.readUint32(this.bb_pos);
+playerId():bigint {
+  return this.bb!.readUint64(this.bb_pos);
 }
 
 playerPosition(obj?:Vec2):Vec2|null {
-  return (obj || new Vec2()).__init(this.bb_pos + 4, this.bb!);
+  return (obj || new Vec2()).__init(this.bb_pos + 8, this.bb!);
 }
 
 static sizeOf():number {
-  return 12;
+  return 16;
 }
 
-static createPlayerData(builder:flatbuffers.Builder, player_id: number, player_position_x: number, player_position_y: number):flatbuffers.Offset {
-  builder.prep(4, 12);
+static createPlayerData(builder:flatbuffers.Builder, player_id: bigint, player_position_x: number, player_position_y: number):flatbuffers.Offset {
+  builder.prep(8, 16);
   builder.prep(4, 8);
   builder.writeFloat32(player_position_y);
   builder.writeFloat32(player_position_x);
-  builder.writeInt32(player_id);
+  builder.writeInt64(BigInt(player_id ?? 0));
   return builder.offset();
 }
 
