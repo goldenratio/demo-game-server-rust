@@ -1,5 +1,5 @@
 use flatbuffers::{FlatBufferBuilder};
-use crate::game_schema_generated::gameplay_fbdata::{GameEvent, GameEventArgs, GameEventType, PlayerControl, PlayerData, root_as_gameplay, Vec2};
+use crate::game_schema_generated::gameplay_fbdata::{GameReponseEvent, GameReponseEventArgs, GameWorldUpdate, GameWorldUpdateArgs, PlayerControl, PlayerData, RemotePeerJoined, RemotePeerJoinedArgs, RemotePeerLeft, RemotePeerLeftArgs, RemotePeerPositionUpdate, RemotePeerPositionUpdateArgs, ResponseMessage, root_as_gameplay, Vec2};
 use crate::game_server::game_world::PeerPlayerInfo;
 use crate::game_server::peer::{ClientControls, ClientData, ClientPosition};
 
@@ -37,17 +37,20 @@ pub fn create_peer_position_bytes(player_id: usize, player_position: ClientPosit
     // ergonomically.)
     let player_position = Vec2::new(player_position.x, player_position.y);
     let player_data = PlayerData::new(player_id as u32, &player_position);
-    let player_data_list = bldr.create_vector(&[player_data]);
 
-    let args = GameEventArgs {
-        event_type: GameEventType::RemotePeerPositionUpdate,
-        player_data_list: Some(player_data_list)
+    let msg = RemotePeerPositionUpdate::create(&mut bldr, &RemotePeerPositionUpdateArgs {
+        player_data: Option::from(&player_data)
+    }).as_union_value();
+
+    let args = GameReponseEventArgs {
+        msg_type: ResponseMessage::RemotePeerPositionUpdate,
+        msg: Option::from(msg)
     };
 
     // Call the `User::create` function with the `FlatBufferBuilder` and our
     // UserArgs object, to serialize the data to the FlatBuffer. The returned
     // value is an offset used to track the location of this serializaed data.
-    let user_offset = GameEvent::create(&mut bldr, &args);
+    let user_offset = GameReponseEvent::create(&mut bldr, &args);
 
     // Finish the write operation by calling the generated function
     // `finish_user_buffer` with the `user_offset` created by `User::create`.
@@ -70,18 +73,19 @@ pub fn create_peer_left_bytes(player_id: usize) -> Vec<u8> {
     // Reset the `FlatBufferBuilder` to a clean state.
     bldr.reset();
 
-    let player_data = PlayerData::new(player_id as u32, &Vec2::default());
-    let player_data_list = bldr.create_vector(&[player_data]);
+    let msg = RemotePeerLeft::create(&mut bldr, &RemotePeerLeftArgs {
+        player_id: player_id as u32
+    }).as_union_value();
 
-    let args = GameEventArgs {
-        event_type: GameEventType::RemotePeerLeft,
-        player_data_list: Some(player_data_list)
+    let args = GameReponseEventArgs {
+        msg_type: ResponseMessage::RemotePeerLeft,
+        msg: Option::from(msg)
     };
 
     // Call the `User::create` function with the `FlatBufferBuilder` and our
     // UserArgs object, to serialize the data to the FlatBuffer. The returned
     // value is an offset used to track the location of this serializaed data.
-    let user_offset = GameEvent::create(&mut bldr, &args);
+    let user_offset = GameReponseEvent::create(&mut bldr, &args);
 
     // Finish the write operation by calling the generated function
     // `finish_user_buffer` with the `user_offset` created by `User::create`.
@@ -94,7 +98,7 @@ pub fn create_peer_left_bytes(player_id: usize) -> Vec<u8> {
     bytes
 }
 
-pub fn create_peer_joined_bytes(player_id: usize) -> Vec<u8> {
+pub fn create_peer_joined_bytes(player_id: usize, player_position: ClientPosition) -> Vec<u8> {
     let mut bldr = FlatBufferBuilder::new();
     let mut bytes: Vec<u8> = Vec::new();
 
@@ -104,24 +108,21 @@ pub fn create_peer_joined_bytes(player_id: usize) -> Vec<u8> {
     // Reset the `FlatBufferBuilder` to a clean state.
     bldr.reset();
 
-    // let args = GameEventArgs {
-    //     event_type: GameEventType::RemotePeerJoined,
-    //     player_id: Some(bldr.create_string(&*player_id.to_string())),
-    //     player_position: None
-    // };
+    let player_data = PlayerData::new(player_id as u32, &Vec2::new(player_position.x, player_position.y));
 
-    let player_data = PlayerData::new(player_id as u32, &Vec2::default());
-    let player_data_list = bldr.create_vector(&[player_data]);
+    let msg = RemotePeerJoined::create(&mut bldr, &RemotePeerJoinedArgs {
+        player_data: Option::from(&player_data)
+    }).as_union_value();
 
-    let args = GameEventArgs {
-        event_type: GameEventType::RemotePeerJoined,
-        player_data_list: Some(player_data_list)
+    let args = GameReponseEventArgs {
+        msg_type: ResponseMessage::RemotePeerJoined,
+        msg: Option::from(msg)
     };
 
     // Call the `User::create` function with the `FlatBufferBuilder` and our
     // UserArgs object, to serialize the data to the FlatBuffer. The returned
     // value is an offset used to track the location of this serializaed data.
-    let user_offset = GameEvent::create(&mut bldr, &args);
+    let user_offset = GameReponseEvent::create(&mut bldr, &args);
 
     // Finish the write operation by calling the generated function
     // `finish_user_buffer` with the `user_offset` created by `User::create`.
@@ -158,15 +159,19 @@ pub fn create_world_update_bytes(world_data: Vec<PeerPlayerInfo>) -> Vec<u8> {
 
     let player_data_vec = bldr.create_vector(&player_data_list);
 
-    let args = GameEventArgs {
-        event_type: GameEventType::GameWorldUpdate,
-        player_data_list: Some(player_data_vec)
+    let msg = GameWorldUpdate::create(&mut bldr, &GameWorldUpdateArgs {
+        player_data_list: Option::from(player_data_vec)
+    }).as_union_value();
+
+    let args = GameReponseEventArgs {
+        msg_type: ResponseMessage::GameWorldUpdate,
+        msg: Option::from(msg)
     };
 
     // Call the `User::create` function with the `FlatBufferBuilder` and our
     // UserArgs object, to serialize the data to the FlatBuffer. The returned
     // value is an offset used to track the location of this serializaed data.
-    let user_offset = GameEvent::create(&mut bldr, &args);
+    let user_offset = GameReponseEvent::create(&mut bldr, &args);
 
     // Finish the write operation by calling the generated function
     // `finish_user_buffer` with the `user_offset` created by `User::create`.

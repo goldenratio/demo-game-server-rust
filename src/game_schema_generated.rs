@@ -19,31 +19,34 @@ pub mod gameplay_fbdata {
   use self::flatbuffers::{EndianScalar, Follow};
 
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
-pub const ENUM_MIN_GAME_EVENT_TYPE: i8 = 0;
+pub const ENUM_MIN_RESPONSE_MESSAGE: u8 = 0;
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
-pub const ENUM_MAX_GAME_EVENT_TYPE: i8 = 3;
+pub const ENUM_MAX_RESPONSE_MESSAGE: u8 = 4;
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 #[allow(non_camel_case_types)]
-pub const ENUM_VALUES_GAME_EVENT_TYPE: [GameEventType; 4] = [
-  GameEventType::RemotePeerJoined,
-  GameEventType::RemotePeerLeft,
-  GameEventType::RemotePeerPositionUpdate,
-  GameEventType::GameWorldUpdate,
+pub const ENUM_VALUES_RESPONSE_MESSAGE: [ResponseMessage; 5] = [
+  ResponseMessage::NONE,
+  ResponseMessage::RemotePeerJoined,
+  ResponseMessage::RemotePeerLeft,
+  ResponseMessage::RemotePeerPositionUpdate,
+  ResponseMessage::GameWorldUpdate,
 ];
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 #[repr(transparent)]
-pub struct GameEventType(pub i8);
+pub struct ResponseMessage(pub u8);
 #[allow(non_upper_case_globals)]
-impl GameEventType {
-  pub const RemotePeerJoined: Self = Self(0);
-  pub const RemotePeerLeft: Self = Self(1);
-  pub const RemotePeerPositionUpdate: Self = Self(2);
-  pub const GameWorldUpdate: Self = Self(3);
+impl ResponseMessage {
+  pub const NONE: Self = Self(0);
+  pub const RemotePeerJoined: Self = Self(1);
+  pub const RemotePeerLeft: Self = Self(2);
+  pub const RemotePeerPositionUpdate: Self = Self(3);
+  pub const GameWorldUpdate: Self = Self(4);
 
-  pub const ENUM_MIN: i8 = 0;
-  pub const ENUM_MAX: i8 = 3;
+  pub const ENUM_MIN: u8 = 0;
+  pub const ENUM_MAX: u8 = 4;
   pub const ENUM_VALUES: &'static [Self] = &[
+    Self::NONE,
     Self::RemotePeerJoined,
     Self::RemotePeerLeft,
     Self::RemotePeerPositionUpdate,
@@ -52,6 +55,7 @@ impl GameEventType {
   /// Returns the variant's name or "" if unknown.
   pub fn variant_name(self) -> Option<&'static str> {
     match self {
+      Self::NONE => Some("NONE"),
       Self::RemotePeerJoined => Some("RemotePeerJoined"),
       Self::RemotePeerLeft => Some("RemotePeerLeft"),
       Self::RemotePeerPositionUpdate => Some("RemotePeerPositionUpdate"),
@@ -60,7 +64,7 @@ impl GameEventType {
     }
   }
 }
-impl core::fmt::Debug for GameEventType {
+impl core::fmt::Debug for ResponseMessage {
   fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
     if let Some(name) = self.variant_name() {
       f.write_str(name)
@@ -69,48 +73,50 @@ impl core::fmt::Debug for GameEventType {
     }
   }
 }
-impl<'a> flatbuffers::Follow<'a> for GameEventType {
+impl<'a> flatbuffers::Follow<'a> for ResponseMessage {
   type Inner = Self;
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    let b = flatbuffers::read_scalar_at::<i8>(buf, loc);
+    let b = flatbuffers::read_scalar_at::<u8>(buf, loc);
     Self(b)
   }
 }
 
-impl flatbuffers::Push for GameEventType {
-    type Output = GameEventType;
+impl flatbuffers::Push for ResponseMessage {
+    type Output = ResponseMessage;
     #[inline]
     unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
-        flatbuffers::emplace_scalar::<i8>(dst, self.0);
+        flatbuffers::emplace_scalar::<u8>(dst, self.0);
     }
 }
 
-impl flatbuffers::EndianScalar for GameEventType {
-  type Scalar = i8;
+impl flatbuffers::EndianScalar for ResponseMessage {
+  type Scalar = u8;
   #[inline]
-  fn to_little_endian(self) -> i8 {
+  fn to_little_endian(self) -> u8 {
     self.0.to_le()
   }
   #[inline]
   #[allow(clippy::wrong_self_convention)]
-  fn from_little_endian(v: i8) -> Self {
-    let b = i8::from_le(v);
+  fn from_little_endian(v: u8) -> Self {
+    let b = u8::from_le(v);
     Self(b)
   }
 }
 
-impl<'a> flatbuffers::Verifiable for GameEventType {
+impl<'a> flatbuffers::Verifiable for ResponseMessage {
   #[inline]
   fn run_verifier(
     v: &mut flatbuffers::Verifier, pos: usize
   ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
     use self::flatbuffers::Verifiable;
-    i8::run_verifier(v, pos)
+    u8::run_verifier(v, pos)
   }
 }
 
-impl flatbuffers::SimpleToVerifyInSlice for GameEventType {}
+impl flatbuffers::SimpleToVerifyInSlice for ResponseMessage {}
+pub struct ResponseMessageUnionTableOffset {}
+
 // struct PlayerControl, aligned to 1
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq)]
@@ -644,117 +650,605 @@ impl core::fmt::Debug for Gameplay<'_> {
       ds.finish()
   }
 }
-pub enum GameEventOffset {}
+pub enum RemotePeerJoinedOffset {}
 #[derive(Copy, Clone, PartialEq)]
 
-pub struct GameEvent<'a> {
+pub struct RemotePeerJoined<'a> {
   pub _tab: flatbuffers::Table<'a>,
 }
 
-impl<'a> flatbuffers::Follow<'a> for GameEvent<'a> {
-  type Inner = GameEvent<'a>;
+impl<'a> flatbuffers::Follow<'a> for RemotePeerJoined<'a> {
+  type Inner = RemotePeerJoined<'a>;
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     Self { _tab: flatbuffers::Table::new(buf, loc) }
   }
 }
 
-impl<'a> GameEvent<'a> {
-  pub const VT_EVENT_TYPE: flatbuffers::VOffsetT = 4;
-  pub const VT_PLAYER_DATA_LIST: flatbuffers::VOffsetT = 6;
+impl<'a> RemotePeerJoined<'a> {
+  pub const VT_PLAYER_DATA: flatbuffers::VOffsetT = 4;
 
   #[inline]
   pub unsafe fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
-    GameEvent { _tab: table }
+    RemotePeerJoined { _tab: table }
   }
   #[allow(unused_mut)]
   pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
     _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
-    args: &'args GameEventArgs<'args>
-  ) -> flatbuffers::WIPOffset<GameEvent<'bldr>> {
-    let mut builder = GameEventBuilder::new(_fbb);
-    if let Some(x) = args.player_data_list { builder.add_player_data_list(x); }
-    builder.add_event_type(args.event_type);
+    args: &'args RemotePeerJoinedArgs<'args>
+  ) -> flatbuffers::WIPOffset<RemotePeerJoined<'bldr>> {
+    let mut builder = RemotePeerJoinedBuilder::new(_fbb);
+    if let Some(x) = args.player_data { builder.add_player_data(x); }
     builder.finish()
   }
 
 
   #[inline]
-  pub fn event_type(&self) -> GameEventType {
+  pub fn player_data(&self) -> Option<&'a PlayerData> {
     // Safety:
     // Created from valid Table for this object
     // which contains a valid value in this slot
-    unsafe { self._tab.get::<GameEventType>(GameEvent::VT_EVENT_TYPE, Some(GameEventType::RemotePeerJoined)).unwrap()}
-  }
-  #[inline]
-  pub fn player_data_list(&self) -> Option<flatbuffers::Vector<'a, PlayerData>> {
-    // Safety:
-    // Created from valid Table for this object
-    // which contains a valid value in this slot
-    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, PlayerData>>>(GameEvent::VT_PLAYER_DATA_LIST, None)}
+    unsafe { self._tab.get::<PlayerData>(RemotePeerJoined::VT_PLAYER_DATA, None)}
   }
 }
 
-impl flatbuffers::Verifiable for GameEvent<'_> {
+impl flatbuffers::Verifiable for RemotePeerJoined<'_> {
   #[inline]
   fn run_verifier(
     v: &mut flatbuffers::Verifier, pos: usize
   ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
     use self::flatbuffers::Verifiable;
     v.visit_table(pos)?
-     .visit_field::<GameEventType>("event_type", Self::VT_EVENT_TYPE, false)?
-     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, PlayerData>>>("player_data_list", Self::VT_PLAYER_DATA_LIST, false)?
+     .visit_field::<PlayerData>("player_data", Self::VT_PLAYER_DATA, false)?
      .finish();
     Ok(())
   }
 }
-pub struct GameEventArgs<'a> {
-    pub event_type: GameEventType,
-    pub player_data_list: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, PlayerData>>>,
+pub struct RemotePeerJoinedArgs<'a> {
+    pub player_data: Option<&'a PlayerData>,
 }
-impl<'a> Default for GameEventArgs<'a> {
+impl<'a> Default for RemotePeerJoinedArgs<'a> {
   #[inline]
   fn default() -> Self {
-    GameEventArgs {
-      event_type: GameEventType::RemotePeerJoined,
-      player_data_list: None,
+    RemotePeerJoinedArgs {
+      player_data: None,
     }
   }
 }
 
-pub struct GameEventBuilder<'a: 'b, 'b> {
+pub struct RemotePeerJoinedBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
 }
-impl<'a: 'b, 'b> GameEventBuilder<'a, 'b> {
+impl<'a: 'b, 'b> RemotePeerJoinedBuilder<'a, 'b> {
   #[inline]
-  pub fn add_event_type(&mut self, event_type: GameEventType) {
-    self.fbb_.push_slot::<GameEventType>(GameEvent::VT_EVENT_TYPE, event_type, GameEventType::RemotePeerJoined);
+  pub fn add_player_data(&mut self, player_data: &PlayerData) {
+    self.fbb_.push_slot_always::<&PlayerData>(RemotePeerJoined::VT_PLAYER_DATA, player_data);
   }
   #[inline]
-  pub fn add_player_data_list(&mut self, player_data_list: flatbuffers::WIPOffset<flatbuffers::Vector<'b , PlayerData>>) {
-    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(GameEvent::VT_PLAYER_DATA_LIST, player_data_list);
-  }
-  #[inline]
-  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> GameEventBuilder<'a, 'b> {
+  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> RemotePeerJoinedBuilder<'a, 'b> {
     let start = _fbb.start_table();
-    GameEventBuilder {
+    RemotePeerJoinedBuilder {
       fbb_: _fbb,
       start_: start,
     }
   }
   #[inline]
-  pub fn finish(self) -> flatbuffers::WIPOffset<GameEvent<'a>> {
+  pub fn finish(self) -> flatbuffers::WIPOffset<RemotePeerJoined<'a>> {
     let o = self.fbb_.end_table(self.start_);
     flatbuffers::WIPOffset::new(o.value())
   }
 }
 
-impl core::fmt::Debug for GameEvent<'_> {
+impl core::fmt::Debug for RemotePeerJoined<'_> {
   fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-    let mut ds = f.debug_struct("GameEvent");
-      ds.field("event_type", &self.event_type());
+    let mut ds = f.debug_struct("RemotePeerJoined");
+      ds.field("player_data", &self.player_data());
+      ds.finish()
+  }
+}
+pub enum RemotePeerLeftOffset {}
+#[derive(Copy, Clone, PartialEq)]
+
+pub struct RemotePeerLeft<'a> {
+  pub _tab: flatbuffers::Table<'a>,
+}
+
+impl<'a> flatbuffers::Follow<'a> for RemotePeerLeft<'a> {
+  type Inner = RemotePeerLeft<'a>;
+  #[inline]
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    Self { _tab: flatbuffers::Table::new(buf, loc) }
+  }
+}
+
+impl<'a> RemotePeerLeft<'a> {
+  pub const VT_PLAYER_ID: flatbuffers::VOffsetT = 4;
+
+  #[inline]
+  pub unsafe fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
+    RemotePeerLeft { _tab: table }
+  }
+  #[allow(unused_mut)]
+  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
+    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+    args: &'args RemotePeerLeftArgs
+  ) -> flatbuffers::WIPOffset<RemotePeerLeft<'bldr>> {
+    let mut builder = RemotePeerLeftBuilder::new(_fbb);
+    builder.add_player_id(args.player_id);
+    builder.finish()
+  }
+
+
+  #[inline]
+  pub fn player_id(&self) -> u32 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<u32>(RemotePeerLeft::VT_PLAYER_ID, Some(0)).unwrap()}
+  }
+}
+
+impl flatbuffers::Verifiable for RemotePeerLeft<'_> {
+  #[inline]
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
+    v.visit_table(pos)?
+     .visit_field::<u32>("player_id", Self::VT_PLAYER_ID, false)?
+     .finish();
+    Ok(())
+  }
+}
+pub struct RemotePeerLeftArgs {
+    pub player_id: u32,
+}
+impl<'a> Default for RemotePeerLeftArgs {
+  #[inline]
+  fn default() -> Self {
+    RemotePeerLeftArgs {
+      player_id: 0,
+    }
+  }
+}
+
+pub struct RemotePeerLeftBuilder<'a: 'b, 'b> {
+  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
+  start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
+}
+impl<'a: 'b, 'b> RemotePeerLeftBuilder<'a, 'b> {
+  #[inline]
+  pub fn add_player_id(&mut self, player_id: u32) {
+    self.fbb_.push_slot::<u32>(RemotePeerLeft::VT_PLAYER_ID, player_id, 0);
+  }
+  #[inline]
+  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> RemotePeerLeftBuilder<'a, 'b> {
+    let start = _fbb.start_table();
+    RemotePeerLeftBuilder {
+      fbb_: _fbb,
+      start_: start,
+    }
+  }
+  #[inline]
+  pub fn finish(self) -> flatbuffers::WIPOffset<RemotePeerLeft<'a>> {
+    let o = self.fbb_.end_table(self.start_);
+    flatbuffers::WIPOffset::new(o.value())
+  }
+}
+
+impl core::fmt::Debug for RemotePeerLeft<'_> {
+  fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+    let mut ds = f.debug_struct("RemotePeerLeft");
+      ds.field("player_id", &self.player_id());
+      ds.finish()
+  }
+}
+pub enum RemotePeerPositionUpdateOffset {}
+#[derive(Copy, Clone, PartialEq)]
+
+pub struct RemotePeerPositionUpdate<'a> {
+  pub _tab: flatbuffers::Table<'a>,
+}
+
+impl<'a> flatbuffers::Follow<'a> for RemotePeerPositionUpdate<'a> {
+  type Inner = RemotePeerPositionUpdate<'a>;
+  #[inline]
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    Self { _tab: flatbuffers::Table::new(buf, loc) }
+  }
+}
+
+impl<'a> RemotePeerPositionUpdate<'a> {
+  pub const VT_PLAYER_DATA: flatbuffers::VOffsetT = 4;
+
+  #[inline]
+  pub unsafe fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
+    RemotePeerPositionUpdate { _tab: table }
+  }
+  #[allow(unused_mut)]
+  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
+    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+    args: &'args RemotePeerPositionUpdateArgs<'args>
+  ) -> flatbuffers::WIPOffset<RemotePeerPositionUpdate<'bldr>> {
+    let mut builder = RemotePeerPositionUpdateBuilder::new(_fbb);
+    if let Some(x) = args.player_data { builder.add_player_data(x); }
+    builder.finish()
+  }
+
+
+  #[inline]
+  pub fn player_data(&self) -> Option<&'a PlayerData> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<PlayerData>(RemotePeerPositionUpdate::VT_PLAYER_DATA, None)}
+  }
+}
+
+impl flatbuffers::Verifiable for RemotePeerPositionUpdate<'_> {
+  #[inline]
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
+    v.visit_table(pos)?
+     .visit_field::<PlayerData>("player_data", Self::VT_PLAYER_DATA, false)?
+     .finish();
+    Ok(())
+  }
+}
+pub struct RemotePeerPositionUpdateArgs<'a> {
+    pub player_data: Option<&'a PlayerData>,
+}
+impl<'a> Default for RemotePeerPositionUpdateArgs<'a> {
+  #[inline]
+  fn default() -> Self {
+    RemotePeerPositionUpdateArgs {
+      player_data: None,
+    }
+  }
+}
+
+pub struct RemotePeerPositionUpdateBuilder<'a: 'b, 'b> {
+  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
+  start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
+}
+impl<'a: 'b, 'b> RemotePeerPositionUpdateBuilder<'a, 'b> {
+  #[inline]
+  pub fn add_player_data(&mut self, player_data: &PlayerData) {
+    self.fbb_.push_slot_always::<&PlayerData>(RemotePeerPositionUpdate::VT_PLAYER_DATA, player_data);
+  }
+  #[inline]
+  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> RemotePeerPositionUpdateBuilder<'a, 'b> {
+    let start = _fbb.start_table();
+    RemotePeerPositionUpdateBuilder {
+      fbb_: _fbb,
+      start_: start,
+    }
+  }
+  #[inline]
+  pub fn finish(self) -> flatbuffers::WIPOffset<RemotePeerPositionUpdate<'a>> {
+    let o = self.fbb_.end_table(self.start_);
+    flatbuffers::WIPOffset::new(o.value())
+  }
+}
+
+impl core::fmt::Debug for RemotePeerPositionUpdate<'_> {
+  fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+    let mut ds = f.debug_struct("RemotePeerPositionUpdate");
+      ds.field("player_data", &self.player_data());
+      ds.finish()
+  }
+}
+pub enum GameWorldUpdateOffset {}
+#[derive(Copy, Clone, PartialEq)]
+
+pub struct GameWorldUpdate<'a> {
+  pub _tab: flatbuffers::Table<'a>,
+}
+
+impl<'a> flatbuffers::Follow<'a> for GameWorldUpdate<'a> {
+  type Inner = GameWorldUpdate<'a>;
+  #[inline]
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    Self { _tab: flatbuffers::Table::new(buf, loc) }
+  }
+}
+
+impl<'a> GameWorldUpdate<'a> {
+  pub const VT_PLAYER_DATA_LIST: flatbuffers::VOffsetT = 4;
+
+  #[inline]
+  pub unsafe fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
+    GameWorldUpdate { _tab: table }
+  }
+  #[allow(unused_mut)]
+  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
+    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+    args: &'args GameWorldUpdateArgs<'args>
+  ) -> flatbuffers::WIPOffset<GameWorldUpdate<'bldr>> {
+    let mut builder = GameWorldUpdateBuilder::new(_fbb);
+    if let Some(x) = args.player_data_list { builder.add_player_data_list(x); }
+    builder.finish()
+  }
+
+
+  #[inline]
+  pub fn player_data_list(&self) -> Option<flatbuffers::Vector<'a, PlayerData>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, PlayerData>>>(GameWorldUpdate::VT_PLAYER_DATA_LIST, None)}
+  }
+}
+
+impl flatbuffers::Verifiable for GameWorldUpdate<'_> {
+  #[inline]
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
+    v.visit_table(pos)?
+     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, PlayerData>>>("player_data_list", Self::VT_PLAYER_DATA_LIST, false)?
+     .finish();
+    Ok(())
+  }
+}
+pub struct GameWorldUpdateArgs<'a> {
+    pub player_data_list: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, PlayerData>>>,
+}
+impl<'a> Default for GameWorldUpdateArgs<'a> {
+  #[inline]
+  fn default() -> Self {
+    GameWorldUpdateArgs {
+      player_data_list: None,
+    }
+  }
+}
+
+pub struct GameWorldUpdateBuilder<'a: 'b, 'b> {
+  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
+  start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
+}
+impl<'a: 'b, 'b> GameWorldUpdateBuilder<'a, 'b> {
+  #[inline]
+  pub fn add_player_data_list(&mut self, player_data_list: flatbuffers::WIPOffset<flatbuffers::Vector<'b , PlayerData>>) {
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(GameWorldUpdate::VT_PLAYER_DATA_LIST, player_data_list);
+  }
+  #[inline]
+  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> GameWorldUpdateBuilder<'a, 'b> {
+    let start = _fbb.start_table();
+    GameWorldUpdateBuilder {
+      fbb_: _fbb,
+      start_: start,
+    }
+  }
+  #[inline]
+  pub fn finish(self) -> flatbuffers::WIPOffset<GameWorldUpdate<'a>> {
+    let o = self.fbb_.end_table(self.start_);
+    flatbuffers::WIPOffset::new(o.value())
+  }
+}
+
+impl core::fmt::Debug for GameWorldUpdate<'_> {
+  fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+    let mut ds = f.debug_struct("GameWorldUpdate");
       ds.field("player_data_list", &self.player_data_list());
+      ds.finish()
+  }
+}
+pub enum GameReponseEventOffset {}
+#[derive(Copy, Clone, PartialEq)]
+
+pub struct GameReponseEvent<'a> {
+  pub _tab: flatbuffers::Table<'a>,
+}
+
+impl<'a> flatbuffers::Follow<'a> for GameReponseEvent<'a> {
+  type Inner = GameReponseEvent<'a>;
+  #[inline]
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    Self { _tab: flatbuffers::Table::new(buf, loc) }
+  }
+}
+
+impl<'a> GameReponseEvent<'a> {
+  pub const VT_MSG_TYPE: flatbuffers::VOffsetT = 4;
+  pub const VT_MSG: flatbuffers::VOffsetT = 6;
+
+  #[inline]
+  pub unsafe fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
+    GameReponseEvent { _tab: table }
+  }
+  #[allow(unused_mut)]
+  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
+    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+    args: &'args GameReponseEventArgs
+  ) -> flatbuffers::WIPOffset<GameReponseEvent<'bldr>> {
+    let mut builder = GameReponseEventBuilder::new(_fbb);
+    if let Some(x) = args.msg { builder.add_msg(x); }
+    builder.add_msg_type(args.msg_type);
+    builder.finish()
+  }
+
+
+  #[inline]
+  pub fn msg_type(&self) -> ResponseMessage {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<ResponseMessage>(GameReponseEvent::VT_MSG_TYPE, Some(ResponseMessage::NONE)).unwrap()}
+  }
+  #[inline]
+  pub fn msg(&self) -> Option<flatbuffers::Table<'a>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Table<'a>>>(GameReponseEvent::VT_MSG, None)}
+  }
+  #[inline]
+  #[allow(non_snake_case)]
+  pub fn msg_as_remote_peer_joined(&self) -> Option<RemotePeerJoined<'a>> {
+    if self.msg_type() == ResponseMessage::RemotePeerJoined {
+      self.msg().map(|t| {
+       // Safety:
+       // Created from a valid Table for this object
+       // Which contains a valid union in this slot
+       unsafe { RemotePeerJoined::init_from_table(t) }
+     })
+    } else {
+      None
+    }
+  }
+
+  #[inline]
+  #[allow(non_snake_case)]
+  pub fn msg_as_remote_peer_left(&self) -> Option<RemotePeerLeft<'a>> {
+    if self.msg_type() == ResponseMessage::RemotePeerLeft {
+      self.msg().map(|t| {
+       // Safety:
+       // Created from a valid Table for this object
+       // Which contains a valid union in this slot
+       unsafe { RemotePeerLeft::init_from_table(t) }
+     })
+    } else {
+      None
+    }
+  }
+
+  #[inline]
+  #[allow(non_snake_case)]
+  pub fn msg_as_remote_peer_position_update(&self) -> Option<RemotePeerPositionUpdate<'a>> {
+    if self.msg_type() == ResponseMessage::RemotePeerPositionUpdate {
+      self.msg().map(|t| {
+       // Safety:
+       // Created from a valid Table for this object
+       // Which contains a valid union in this slot
+       unsafe { RemotePeerPositionUpdate::init_from_table(t) }
+     })
+    } else {
+      None
+    }
+  }
+
+  #[inline]
+  #[allow(non_snake_case)]
+  pub fn msg_as_game_world_update(&self) -> Option<GameWorldUpdate<'a>> {
+    if self.msg_type() == ResponseMessage::GameWorldUpdate {
+      self.msg().map(|t| {
+       // Safety:
+       // Created from a valid Table for this object
+       // Which contains a valid union in this slot
+       unsafe { GameWorldUpdate::init_from_table(t) }
+     })
+    } else {
+      None
+    }
+  }
+
+}
+
+impl flatbuffers::Verifiable for GameReponseEvent<'_> {
+  #[inline]
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
+    v.visit_table(pos)?
+     .visit_union::<ResponseMessage, _>("msg_type", Self::VT_MSG_TYPE, "msg", Self::VT_MSG, false, |key, v, pos| {
+        match key {
+          ResponseMessage::RemotePeerJoined => v.verify_union_variant::<flatbuffers::ForwardsUOffset<RemotePeerJoined>>("ResponseMessage::RemotePeerJoined", pos),
+          ResponseMessage::RemotePeerLeft => v.verify_union_variant::<flatbuffers::ForwardsUOffset<RemotePeerLeft>>("ResponseMessage::RemotePeerLeft", pos),
+          ResponseMessage::RemotePeerPositionUpdate => v.verify_union_variant::<flatbuffers::ForwardsUOffset<RemotePeerPositionUpdate>>("ResponseMessage::RemotePeerPositionUpdate", pos),
+          ResponseMessage::GameWorldUpdate => v.verify_union_variant::<flatbuffers::ForwardsUOffset<GameWorldUpdate>>("ResponseMessage::GameWorldUpdate", pos),
+          _ => Ok(()),
+        }
+     })?
+     .finish();
+    Ok(())
+  }
+}
+pub struct GameReponseEventArgs {
+    pub msg_type: ResponseMessage,
+    pub msg: Option<flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>>,
+}
+impl<'a> Default for GameReponseEventArgs {
+  #[inline]
+  fn default() -> Self {
+    GameReponseEventArgs {
+      msg_type: ResponseMessage::NONE,
+      msg: None,
+    }
+  }
+}
+
+pub struct GameReponseEventBuilder<'a: 'b, 'b> {
+  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
+  start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
+}
+impl<'a: 'b, 'b> GameReponseEventBuilder<'a, 'b> {
+  #[inline]
+  pub fn add_msg_type(&mut self, msg_type: ResponseMessage) {
+    self.fbb_.push_slot::<ResponseMessage>(GameReponseEvent::VT_MSG_TYPE, msg_type, ResponseMessage::NONE);
+  }
+  #[inline]
+  pub fn add_msg(&mut self, msg: flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>) {
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(GameReponseEvent::VT_MSG, msg);
+  }
+  #[inline]
+  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> GameReponseEventBuilder<'a, 'b> {
+    let start = _fbb.start_table();
+    GameReponseEventBuilder {
+      fbb_: _fbb,
+      start_: start,
+    }
+  }
+  #[inline]
+  pub fn finish(self) -> flatbuffers::WIPOffset<GameReponseEvent<'a>> {
+    let o = self.fbb_.end_table(self.start_);
+    flatbuffers::WIPOffset::new(o.value())
+  }
+}
+
+impl core::fmt::Debug for GameReponseEvent<'_> {
+  fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+    let mut ds = f.debug_struct("GameReponseEvent");
+      ds.field("msg_type", &self.msg_type());
+      match self.msg_type() {
+        ResponseMessage::RemotePeerJoined => {
+          if let Some(x) = self.msg_as_remote_peer_joined() {
+            ds.field("msg", &x)
+          } else {
+            ds.field("msg", &"InvalidFlatbuffer: Union discriminant does not match value.")
+          }
+        },
+        ResponseMessage::RemotePeerLeft => {
+          if let Some(x) = self.msg_as_remote_peer_left() {
+            ds.field("msg", &x)
+          } else {
+            ds.field("msg", &"InvalidFlatbuffer: Union discriminant does not match value.")
+          }
+        },
+        ResponseMessage::RemotePeerPositionUpdate => {
+          if let Some(x) = self.msg_as_remote_peer_position_update() {
+            ds.field("msg", &x)
+          } else {
+            ds.field("msg", &"InvalidFlatbuffer: Union discriminant does not match value.")
+          }
+        },
+        ResponseMessage::GameWorldUpdate => {
+          if let Some(x) = self.msg_as_game_world_update() {
+            ds.field("msg", &x)
+          } else {
+            ds.field("msg", &"InvalidFlatbuffer: Union discriminant does not match value.")
+          }
+        },
+        _ => {
+          let x: Option<()> = None;
+          ds.field("msg", &x)
+        },
+      };
       ds.finish()
   }
 }

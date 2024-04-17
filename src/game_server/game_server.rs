@@ -5,6 +5,7 @@ use actix::prelude::*;
 use rand::{rngs::ThreadRng, Rng};
 use crate::game_server::game_world::GameWorld;
 use crate::game_server::message_types::{Connect, Disconnect, PeerPlayerData, PeerPlayerPositionUpdate};
+use crate::game_server::peer::ClientPosition;
 
 #[derive(Debug)]
 pub struct GameServer {
@@ -57,7 +58,8 @@ impl Handler<Connect> for GameServer {
 
         // send message to other users
         self.send_position_to_other_players(PeerPlayerData::RemotePeerJoined {
-            player_id: id
+            player_id: id,
+            player_position: ClientPosition { x: 0.0, y: 0.0 }
         }, Option::from(id));
 
         // send world update to current peer

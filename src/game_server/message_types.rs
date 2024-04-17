@@ -13,14 +13,15 @@ pub struct Connect {
 #[rtype(result = "()")]
 pub enum PeerPlayerData {
     RemotePeerJoined {
-        player_id: usize
+        player_id: usize,
+        player_position: ClientPosition,
     },
     RemotePeerLeft {
         player_id: usize
     },
     RemotePeerPositionUpdate {
-        player_position: ClientPosition,
         player_id: usize,
+        player_position: ClientPosition,
     },
     WorldUpdate {
         world_data: Vec<PeerPlayerInfo>,

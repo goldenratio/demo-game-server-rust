@@ -26,19 +26,19 @@ pub struct ClientData {
 }
 
 pub struct Peer {
-    /// unique session id
+    // unique session id
     pub id: usize,
 
     pub heart_beat: Instant,
 
-    /// game server actor address
+    // game server actor address
     pub game_server_addr: Addr<game_server::GameServer>,
 }
 
 impl Peer {
     pub fn create(game_server_addr: Addr<game_server::GameServer>) -> Self {
         Self {
-            /// id is re-assigned when connection is established
+            // id is re-assigned when connection is established
             id: 0,
             heart_beat: Instant::now(),
             game_server_addr
@@ -86,8 +86,8 @@ impl Handler<PeerPlayerData> for Peer {
         // println!("Peer {:?} - game_server::PeerPlayerData {:?}", self.id, msg);
 
         match msg {
-            PeerPlayerData::RemotePeerJoined { player_id } => {
-                let bytes = create_peer_joined_bytes(player_id);
+            PeerPlayerData::RemotePeerJoined { player_id, player_position } => {
+                let bytes = create_peer_joined_bytes(player_id, player_position);
                 ctx.binary(bytes);
             }
             PeerPlayerData::RemotePeerLeft { player_id } => {

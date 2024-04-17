@@ -22,11 +22,26 @@ table Gameplay {
   player_position: Vec2;
 }
 
-enum GameEventType: byte { RemotePeerJoined, RemotePeerLeft, RemotePeerPositionUpdate, GameWorldUpdate }
+table RemotePeerJoined {
+  player_data: PlayerData;
+}
 
-table GameEvent {
-  event_type: GameEventType;
-  player_data_list: [PlayerData];
+table RemotePeerLeft {
+  player_id: uint32;
+}
+
+table RemotePeerPositionUpdate {
+  player_data: PlayerData;
+}
+
+table GameWorldUpdate {
+    player_data_list: [PlayerData];
+}
+
+union ResponseMessage { RemotePeerJoined, RemotePeerLeft, RemotePeerPositionUpdate, GameWorldUpdate }
+
+table GameReponseEvent {
+  msg: ResponseMessage;
 }
 
 root_type Gameplay;
