@@ -548,7 +548,6 @@ impl<'a> flatbuffers::Follow<'a> for Gameplay<'a> {
 impl<'a> Gameplay<'a> {
   pub const VT_PLAYER_CONTROLS: flatbuffers::VOffsetT = 4;
   pub const VT_PLAYER_POSITION: flatbuffers::VOffsetT = 6;
-  pub const VT_PLAYER_ID: flatbuffers::VOffsetT = 8;
 
   #[inline]
   pub unsafe fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
@@ -560,7 +559,6 @@ impl<'a> Gameplay<'a> {
     args: &'args GameplayArgs<'args>
   ) -> flatbuffers::WIPOffset<Gameplay<'bldr>> {
     let mut builder = GameplayBuilder::new(_fbb);
-    builder.add_player_id(args.player_id);
     if let Some(x) = args.player_position { builder.add_player_position(x); }
     if let Some(x) = args.player_controls { builder.add_player_controls(x); }
     builder.finish()
@@ -581,13 +579,6 @@ impl<'a> Gameplay<'a> {
     // which contains a valid value in this slot
     unsafe { self._tab.get::<Vec2>(Gameplay::VT_PLAYER_POSITION, None)}
   }
-  #[inline]
-  pub fn player_id(&self) -> u32 {
-    // Safety:
-    // Created from valid Table for this object
-    // which contains a valid value in this slot
-    unsafe { self._tab.get::<u32>(Gameplay::VT_PLAYER_ID, Some(0)).unwrap()}
-  }
 }
 
 impl flatbuffers::Verifiable for Gameplay<'_> {
@@ -599,7 +590,6 @@ impl flatbuffers::Verifiable for Gameplay<'_> {
     v.visit_table(pos)?
      .visit_field::<PlayerControl>("player_controls", Self::VT_PLAYER_CONTROLS, false)?
      .visit_field::<Vec2>("player_position", Self::VT_PLAYER_POSITION, false)?
-     .visit_field::<u32>("player_id", Self::VT_PLAYER_ID, false)?
      .finish();
     Ok(())
   }
@@ -607,7 +597,6 @@ impl flatbuffers::Verifiable for Gameplay<'_> {
 pub struct GameplayArgs<'a> {
     pub player_controls: Option<&'a PlayerControl>,
     pub player_position: Option<&'a Vec2>,
-    pub player_id: u32,
 }
 impl<'a> Default for GameplayArgs<'a> {
   #[inline]
@@ -615,7 +604,6 @@ impl<'a> Default for GameplayArgs<'a> {
     GameplayArgs {
       player_controls: None,
       player_position: None,
-      player_id: 0,
     }
   }
 }
@@ -632,10 +620,6 @@ impl<'a: 'b, 'b> GameplayBuilder<'a, 'b> {
   #[inline]
   pub fn add_player_position(&mut self, player_position: &Vec2) {
     self.fbb_.push_slot_always::<&Vec2>(Gameplay::VT_PLAYER_POSITION, player_position);
-  }
-  #[inline]
-  pub fn add_player_id(&mut self, player_id: u32) {
-    self.fbb_.push_slot::<u32>(Gameplay::VT_PLAYER_ID, player_id, 0);
   }
   #[inline]
   pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> GameplayBuilder<'a, 'b> {
@@ -657,7 +641,6 @@ impl core::fmt::Debug for Gameplay<'_> {
     let mut ds = f.debug_struct("Gameplay");
       ds.field("player_controls", &self.player_controls());
       ds.field("player_position", &self.player_position());
-      ds.field("player_id", &self.player_id());
       ds.finish()
   }
 }

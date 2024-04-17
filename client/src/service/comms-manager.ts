@@ -157,13 +157,9 @@ export class CommsManager implements Disposable {
     const builder = new Builder(0);
     builder.clear();
 
-    // const playerIdOffset = builder.createString('2121');
-
     Gameplay.startGameplay(builder);
-
     Gameplay.addPlayerControls(builder, PlayerControl.createPlayerControl(builder, this._isUp, this._isDown, this._isLeft, this._isRight));
     Gameplay.addPlayerPosition(builder, Vec2.createVec2(builder, this._posX, this._posY));
-    Gameplay.addPlayerId(builder, 1213232);
 
     const offset = Gameplay.endGameplay(builder);
     builder.finish(offset);

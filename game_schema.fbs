@@ -20,7 +20,6 @@ struct PlayerData {
 table Gameplay {
   player_controls: PlayerControl;
   player_position: Vec2;
-  player_id: uint32;
 }
 
 enum GameEventType: byte { RemotePeerJoined, RemotePeerLeft, RemotePeerPositionUpdate, GameWorldUpdate }

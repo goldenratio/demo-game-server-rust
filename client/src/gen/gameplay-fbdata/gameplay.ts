@@ -34,13 +34,8 @@ playerPosition(obj?:Vec2):Vec2|null {
   return offset ? (obj || new Vec2()).__init(this.bb_pos + offset, this.bb!) : null;
 }
 
-playerId():number {
-  const offset = this.bb!.__offset(this.bb_pos, 8);
-  return offset ? this.bb!.readUint32(this.bb_pos + offset) : 0;
-}
-
 static startGameplay(builder:flatbuffers.Builder) {
-  builder.startObject(3);
+  builder.startObject(2);
 }
 
 static addPlayerControls(builder:flatbuffers.Builder, playerControlsOffset:flatbuffers.Offset) {
@@ -49,10 +44,6 @@ static addPlayerControls(builder:flatbuffers.Builder, playerControlsOffset:flatb
 
 static addPlayerPosition(builder:flatbuffers.Builder, playerPositionOffset:flatbuffers.Offset) {
   builder.addFieldStruct(1, playerPositionOffset, 0);
-}
-
-static addPlayerId(builder:flatbuffers.Builder, playerId:number) {
-  builder.addFieldInt32(2, playerId, 0);
 }
 
 static endGameplay(builder:flatbuffers.Builder):flatbuffers.Offset {
