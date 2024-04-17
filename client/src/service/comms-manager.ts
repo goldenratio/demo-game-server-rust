@@ -162,7 +162,7 @@ export class CommsManager implements Disposable {
     return this._peerPlayerLeftSubject$.asObservable();
   }
 
-  sendUpdates(): void {
+  sendPlayerMoved(): void {
     // console.log('sendUpdates ', playerPosition);
     if (this._isSocketClosed) {
       return;
@@ -186,5 +186,9 @@ export class CommsManager implements Disposable {
 
     const bytes = builder.asUint8Array();
     this._socket.send(bytes);
+  }
+
+  sendWeaponFired(): void {
+    //
   }
 }

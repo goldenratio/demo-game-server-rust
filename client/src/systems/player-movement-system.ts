@@ -65,7 +65,7 @@ export class PlayerMovementSystem extends System {
       this._service
         .setPlayerPosition(positionComponent.x, positionComponent.y)
         .setKeyPressed(keyboardControlsComponent.isUp, keyboardControlsComponent.isDown, keyboardControlsComponent.isLeft, keyboardControlsComponent.isRight)
-        .sendUpdates();
+        .sendPlayerMoved();
     }
 	}
 }
