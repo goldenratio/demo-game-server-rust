@@ -26,11 +26,9 @@ export class OpponentPlayerSystem extends System {
     super.addedToWorld(world);
     this._disposeBag = new DisposeBag();
 
-    this._disposeBag.completable$(this._service.peerPlayerJoined$).subscribe(playerList => {
-      playerList.forEach(data => {
-        const peerEntity = createPeerEntity(data.playerId);
-        world.addEntity(peerEntity);
-      });
+    this._disposeBag.completable$(this._service.peerPlayerJoined$).subscribe(data => {
+      const peerEntity = createPeerEntity(data.playerId);
+      world.addEntity(peerEntity);
     });
 
     this._disposeBag.completable$(this._service.peerPlayerUpdate$).subscribe(playerList => {
@@ -54,14 +52,12 @@ export class OpponentPlayerSystem extends System {
       });
     });
 
-    this._disposeBag.completable$(this._service.peerPlayerLeft$).subscribe(playerList => {
-      playerList.forEach(data => {
-        const peerEntities = world.getEntities([OpponentPlayerComponent.TYPE]).filter(entity => {
-          const comp = entity.getComponent<OpponentPlayerComponent>(OpponentPlayerComponent.TYPE);
-          return comp && comp.playerId === data.playerId;
-        });
-        peerEntities.forEach(entity => world.removeEntity(entity));
+    this._disposeBag.completable$(this._service.peerPlayerLeft$).subscribe(data => {
+      const peerEntities = world.getEntities([OpponentPlayerComponent.TYPE]).filter(entity => {
+        const comp = entity.getComponent<OpponentPlayerComponent>(OpponentPlayerComponent.TYPE);
+        return comp && comp.playerId === data.playerId;
       });
+      peerEntities.forEach(entity => world.removeEntity(entity));
     });
   }
 }

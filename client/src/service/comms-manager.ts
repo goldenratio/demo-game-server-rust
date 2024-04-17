@@ -1,7 +1,14 @@
 import {Disposable, DisposeBag} from '../utils/dispose-bag';
 import {fromEvent, Observable, ReplaySubject, Subject} from 'rxjs';
-import {Builder, ByteBuffer} from "flatbuffers";
-import {GameEvent, GameEventType, Gameplay, PlayerControl, Vec2} from "../gen/gameplay-fbdata";
+import { Builder, ByteBuffer } from 'flatbuffers';
+import {
+  Gameplay,
+  GameReponseEvent, GameWorldUpdate,
+  PlayerControl,
+  RemotePeerJoined, RemotePeerLeft, RemotePeerPositionUpdate,
+  ResponseMessage,
+  Vec2
+} from '../gen/gameplay-fbdata';
 
 interface PeerPlayerUpdate {
   readonly playerId: string;
@@ -12,8 +19,8 @@ interface PeerPlayerUpdate {
 export class CommsManager implements Disposable {
 	private readonly _connectedSubject$ = new ReplaySubject<void>(1);
   private readonly _peerPlayerUpdateSubject$ = new ReplaySubject<ReadonlyArray<PeerPlayerUpdate>>(1);
-  private readonly _peerPlayerLeftSubject$ = new Subject<ReadonlyArray<{ readonly playerId: string }>>();
-  private readonly _peerPlayerJoinedSubject$ = new Subject<ReadonlyArray<{ readonly playerId: string }>>();
+  private readonly _peerPlayerLeftSubject$ = new Subject<{ readonly playerId: string }>();
+  private readonly _peerPlayerJoinedSubject$ = new Subject<{ readonly playerId: string }>();
 	private readonly _disposeBag = new DisposeBag();
   private readonly _socket: WebSocket;
 
@@ -41,14 +48,55 @@ export class CommsManager implements Disposable {
       const bytes = new Uint8Array(event.data);
       // console.log('message from server, ', bytes);
       const buffer = new ByteBuffer(bytes);
-      const gameEvent = GameEvent.getRootAsGameEvent(buffer);
-      const eventType = gameEvent.eventType();
+      const gameResponseEvent = GameReponseEvent.getRootAsGameReponseEvent(buffer);
+      const eventType = gameResponseEvent.msgType();
 
-      if (eventType === GameEventType.RemotePeerPositionUpdate) {
+      // console.info('gameResponseEvent: ', eventType);
+
+      if (eventType === ResponseMessage.RemotePeerJoined) {
+        const joinData = RemotePeerJoined.getRootAsRemotePeerJoined(buffer);
+        const msg: RemotePeerJoined = gameResponseEvent.msg(joinData);
+
+        const playerData = msg.playerData();
+        const playerPosition = msg.playerData().playerPosition();
+        const playerId = BigInt(playerData.playerId()).toString();
+
+        console.log('Remote player joined: ', playerId, { x: playerPosition.x(), y: playerPosition.y() });
+        this._peerPlayerJoinedSubject$.next({
+          playerId: playerId
+        });
+      } else if (eventType === ResponseMessage.RemotePeerLeft) {
+        const leaveData = RemotePeerLeft.getRootAsRemotePeerLeft(buffer);
+        const msg: RemotePeerLeft = gameResponseEvent.msg(leaveData);
+
+        const playerId = BigInt(msg.playerId()).toString();
+
+        console.log('Remote player left: ', playerId);
+        this._peerPlayerLeftSubject$.next({
+          playerId: playerId
+        });
+      } else if (eventType === ResponseMessage.RemotePeerPositionUpdate) {
+        const updateDate = RemotePeerPositionUpdate.getRootAsRemotePeerPositionUpdate(buffer);
+        const msg: RemotePeerPositionUpdate = gameResponseEvent.msg(updateDate);
+
+        const playerData = msg.playerData();
+        const playerPosition = msg.playerData().playerPosition();
+        const playerId = BigInt(playerData.playerId()).toString();
+
+        // console.log('RemotePeerPositionUpdate: ', playerId, { x: playerPosition.x(), y: playerPosition.y() });
+        this._peerPlayerUpdateSubject$.next([<PeerPlayerUpdate>{
+          playerId: playerId,
+          x: playerPosition.x(),
+          y: playerPosition.y()
+        }]);
+      } else if (eventType === ResponseMessage.GameWorldUpdate) {
+        const updateDate = GameWorldUpdate.getRootAsGameWorldUpdate(buffer);
+        const msg: GameWorldUpdate = gameResponseEvent.msg(updateDate);
+
         const playerUpdateList = Array
-          .from({ length: gameEvent.playerDataListLength() })
+          .from({ length: msg.playerDataListLength() })
           .map((_, index) => {
-            const playerData = gameEvent.playerDataList(index);
+            const playerData = msg.playerDataList(index);
             const pos = playerData.playerPosition();
             const update: PeerPlayerUpdate = {
               playerId: playerData.playerId().toString(),
@@ -57,45 +105,6 @@ export class CommsManager implements Disposable {
             };
             return update;
           });
-        this._peerPlayerUpdateSubject$.next(playerUpdateList);
-      } else if (eventType === GameEventType.RemotePeerLeft) {
-        const playerUpdateList = Array
-          .from({ length: gameEvent.playerDataListLength() })
-          .map((_, index) => {
-            const playerData = gameEvent.playerDataList(index);
-            return {
-              playerId: playerData.playerId().toString()
-            };
-          });
-
-        console.log('Remote player left: ', playerUpdateList);
-        this._peerPlayerLeftSubject$.next(playerUpdateList);
-      } else if (eventType === GameEventType.RemotePeerJoined) {
-        const playerUpdateList = Array
-          .from({ length: gameEvent.playerDataListLength() })
-          .map((_, index) => {
-            const playerData = gameEvent.playerDataList(index);
-            return {
-              playerId: playerData.playerId().toString()
-            };
-          });
-
-        console.log('Remote player joined: ', playerUpdateList);
-        this._peerPlayerJoinedSubject$.next(playerUpdateList);
-      } else if (eventType === GameEventType.GameWorldUpdate) {
-        const playerUpdateList = Array
-          .from({ length: gameEvent.playerDataListLength() })
-          .map((_, index) => {
-            const playerData = gameEvent.playerDataList(index);
-            const pos = playerData.playerPosition();
-            const update: PeerPlayerUpdate = {
-              playerId: playerData.playerId().toString(),
-              x: pos.x(),
-              y: pos.y()
-            };
-            return update;
-          });
-        console.log('GameWorldUpdate: ', playerUpdateList);
         this._peerPlayerUpdateSubject$.next(playerUpdateList);
       }
     });
@@ -141,11 +150,11 @@ export class CommsManager implements Disposable {
     return this._peerPlayerUpdateSubject$.asObservable();
   }
 
-  get peerPlayerJoined$(): Observable<ReadonlyArray<{ readonly playerId: string }>> {
+  get peerPlayerJoined$(): Observable<{ readonly playerId: string }> {
     return this._peerPlayerJoinedSubject$.asObservable();
   }
 
-  get peerPlayerLeft$(): Observable<ReadonlyArray<{ readonly playerId: string }>> {
+  get peerPlayerLeft$(): Observable<{ readonly playerId: string }> {
     return this._peerPlayerLeftSubject$.asObservable();
   }
 
