@@ -1,25 +1,35 @@
 use flatbuffers::{FlatBufferBuilder};
-use crate::game_schema_generated::gameplay_fbdata::{GameReponseEvent, GameReponseEventArgs, GameWorldUpdate, GameWorldUpdateArgs, PlayerControl, PlayerData, RemotePeerJoined, RemotePeerJoinedArgs, RemotePeerLeft, RemotePeerLeftArgs, RemotePeerPositionUpdate, RemotePeerPositionUpdateArgs, ResponseMessage, root_as_gameplay, Vec2};
+use crate::game_schema_generated::gameplay_fbdata::{GameReponseEvent, GameReponseEventArgs, GameWorldUpdate, GameWorldUpdateArgs, PlayerControl, PlayerData, PlayerMoved, RemotePeerJoined, RemotePeerJoinedArgs, RemotePeerLeft, RemotePeerLeftArgs, RemotePeerPositionUpdate, RemotePeerPositionUpdateArgs, RequestMessages, ResponseMessage, root_as_game_request_event, Vec2};
 use crate::game_server::game_world::PeerPlayerInfo;
 use crate::game_server::peer::{ClientControls, ClientData, ClientPosition};
 
 pub fn read_gameplay_data(buf: &[u8]) -> ClientData {
-    let gameplay = root_as_gameplay(buf).unwrap();
-    let player_controls = gameplay.player_controls().unwrap_or_else(|| &PlayerControl([0; 4]));
-    let player_position = gameplay.player_position().unwrap_or_else(|| &Vec2([0; 8]));
+    let gameplay = root_as_game_request_event(buf).unwrap();
+    let event_type = gameplay.msg_type();
 
-    ClientData {
-        player_position: ClientPosition {
-            x: player_position.x(),
-            y: player_position.y(),
-        },
-        player_controls: ClientControls {
-            up: player_controls.up(),
-            down: player_controls.down(),
-            left: player_controls.left(),
-            right: player_controls.right(),
+    if event_type == RequestMessages::PlayerMoved {
+        if let Some(player_moved) =  gameplay.msg_as_player_moved() {
+            let player_controls = player_moved.player_controls().unwrap_or_else(|| &PlayerControl([0; 4]));
+            let player_position = player_moved.player_position().unwrap_or_else(|| &Vec2([0; 8]));
+
+            return ClientData::PlayerMoved {
+                player_position: ClientPosition {
+                    x: player_position.x(),
+                    y: player_position.y(),
+                },
+                player_controls: ClientControls {
+                    up: player_controls.up(),
+                    down: player_controls.down(),
+                    left: player_controls.left(),
+                    right: player_controls.right(),
+                }
+            };
         }
+    } else if event_type == RequestMessages::WeaponFired {
+        //
     }
+
+    ClientData::Unknown
 }
 
 pub fn create_peer_position_bytes(player_id: usize, player_position: ClientPosition) -> Vec<u8> {

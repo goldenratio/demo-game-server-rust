@@ -1,11 +1,15 @@
 import {Disposable, DisposeBag} from '../utils/dispose-bag';
 import {fromEvent, Observable, ReplaySubject, Subject} from 'rxjs';
-import { Builder, ByteBuffer } from 'flatbuffers';
+import {Builder, ByteBuffer} from 'flatbuffers';
 import {
-  Gameplay,
-  GameReponseEvent, GameWorldUpdate,
-  PlayerControl,
-  RemotePeerJoined, RemotePeerLeft, RemotePeerPositionUpdate,
+  GameReponseEvent,
+  GameRequestEvent,
+  GameWorldUpdate,
+  PlayerControl, PlayerMoved,
+  RemotePeerJoined,
+  RemotePeerLeft,
+  RemotePeerPositionUpdate,
+  RequestMessages,
   ResponseMessage,
   Vec2
 } from '../gen/gameplay-fbdata';
@@ -172,11 +176,12 @@ export class CommsManager implements Disposable {
     const builder = new Builder(0);
     builder.clear();
 
-    Gameplay.startGameplay(builder);
-    Gameplay.addPlayerControls(builder, PlayerControl.createPlayerControl(builder, this._isUp, this._isDown, this._isLeft, this._isRight));
-    Gameplay.addPlayerPosition(builder, Vec2.createVec2(builder, this._posX, this._posY));
+    PlayerMoved.startPlayerMoved(builder);
+    PlayerMoved.addPlayerControls(builder, PlayerControl.createPlayerControl(builder, this._isUp, this._isDown, this._isLeft, this._isRight));
+    PlayerMoved.addPlayerPosition(builder, Vec2.createVec2(builder, this._posX, this._posY));
+    const msgOffset = PlayerMoved.endPlayerMoved(builder);
 
-    const offset = Gameplay.endGameplay(builder);
+    const offset = GameRequestEvent.createGameRequestEvent(builder, RequestMessages.PlayerMoved, msgOffset);
     builder.finish(offset);
 
     const bytes = builder.asUint8Array();

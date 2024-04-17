@@ -20,9 +20,13 @@ pub struct ClientPosition {
 }
 
 #[derive(Debug)]
-pub struct ClientData {
-    pub player_controls: ClientControls,
-    pub player_position: ClientPosition
+pub enum ClientData {
+    PlayerMoved {
+        player_controls: ClientControls,
+        player_position: ClientPosition
+    },
+    WeaponFired {},
+    Unknown
 }
 
 pub struct Peer {
@@ -124,10 +128,16 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for Peer {
             }
             ws::Message::Binary(bytes) => {
                 let gameplay_data = read_gameplay_data(&bytes);
-                self.game_server_addr.do_send(PeerPlayerPositionUpdate {
-                    player_position: gameplay_data.player_position,
-                    player_id: self.id
-                });
+                match gameplay_data {
+                    ClientData::PlayerMoved {  player_position, .. } => {
+                        self.game_server_addr.do_send(PeerPlayerPositionUpdate {
+                            player_position: player_position,
+                            player_id: self.id
+                        });
+                    }
+                    ClientData::WeaponFired { .. } => {}
+                    ClientData::Unknown => {}
+                }
             }
             ws::Message::Ping(msg) => {
                 self.heart_beat = Instant::now();

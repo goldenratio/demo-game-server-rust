@@ -19,6 +19,97 @@ pub mod gameplay_fbdata {
   use self::flatbuffers::{EndianScalar, Follow};
 
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+pub const ENUM_MIN_REQUEST_MESSAGES: u8 = 0;
+#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+pub const ENUM_MAX_REQUEST_MESSAGES: u8 = 2;
+#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[allow(non_camel_case_types)]
+pub const ENUM_VALUES_REQUEST_MESSAGES: [RequestMessages; 3] = [
+  RequestMessages::NONE,
+  RequestMessages::PlayerMoved,
+  RequestMessages::WeaponFired,
+];
+
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
+#[repr(transparent)]
+pub struct RequestMessages(pub u8);
+#[allow(non_upper_case_globals)]
+impl RequestMessages {
+  pub const NONE: Self = Self(0);
+  pub const PlayerMoved: Self = Self(1);
+  pub const WeaponFired: Self = Self(2);
+
+  pub const ENUM_MIN: u8 = 0;
+  pub const ENUM_MAX: u8 = 2;
+  pub const ENUM_VALUES: &'static [Self] = &[
+    Self::NONE,
+    Self::PlayerMoved,
+    Self::WeaponFired,
+  ];
+  /// Returns the variant's name or "" if unknown.
+  pub fn variant_name(self) -> Option<&'static str> {
+    match self {
+      Self::NONE => Some("NONE"),
+      Self::PlayerMoved => Some("PlayerMoved"),
+      Self::WeaponFired => Some("WeaponFired"),
+      _ => None,
+    }
+  }
+}
+impl core::fmt::Debug for RequestMessages {
+  fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+    if let Some(name) = self.variant_name() {
+      f.write_str(name)
+    } else {
+      f.write_fmt(format_args!("<UNKNOWN {:?}>", self.0))
+    }
+  }
+}
+impl<'a> flatbuffers::Follow<'a> for RequestMessages {
+  type Inner = Self;
+  #[inline]
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    let b = flatbuffers::read_scalar_at::<u8>(buf, loc);
+    Self(b)
+  }
+}
+
+impl flatbuffers::Push for RequestMessages {
+    type Output = RequestMessages;
+    #[inline]
+    unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
+        flatbuffers::emplace_scalar::<u8>(dst, self.0);
+    }
+}
+
+impl flatbuffers::EndianScalar for RequestMessages {
+  type Scalar = u8;
+  #[inline]
+  fn to_little_endian(self) -> u8 {
+    self.0.to_le()
+  }
+  #[inline]
+  #[allow(clippy::wrong_self_convention)]
+  fn from_little_endian(v: u8) -> Self {
+    let b = u8::from_le(v);
+    Self(b)
+  }
+}
+
+impl<'a> flatbuffers::Verifiable for RequestMessages {
+  #[inline]
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
+    u8::run_verifier(v, pos)
+  }
+}
+
+impl flatbuffers::SimpleToVerifyInSlice for RequestMessages {}
+pub struct RequestMessagesUnionTableOffset {}
+
+#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_RESPONSE_MESSAGE: u8 = 0;
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MAX_RESPONSE_MESSAGE: u8 = 4;
@@ -536,35 +627,35 @@ impl<'a> PlayerData {
 
 }
 
-pub enum GameplayOffset {}
+pub enum PlayerMovedOffset {}
 #[derive(Copy, Clone, PartialEq)]
 
-pub struct Gameplay<'a> {
+pub struct PlayerMoved<'a> {
   pub _tab: flatbuffers::Table<'a>,
 }
 
-impl<'a> flatbuffers::Follow<'a> for Gameplay<'a> {
-  type Inner = Gameplay<'a>;
+impl<'a> flatbuffers::Follow<'a> for PlayerMoved<'a> {
+  type Inner = PlayerMoved<'a>;
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
     Self { _tab: flatbuffers::Table::new(buf, loc) }
   }
 }
 
-impl<'a> Gameplay<'a> {
+impl<'a> PlayerMoved<'a> {
   pub const VT_PLAYER_CONTROLS: flatbuffers::VOffsetT = 4;
   pub const VT_PLAYER_POSITION: flatbuffers::VOffsetT = 6;
 
   #[inline]
   pub unsafe fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
-    Gameplay { _tab: table }
+    PlayerMoved { _tab: table }
   }
   #[allow(unused_mut)]
   pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
     _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
-    args: &'args GameplayArgs<'args>
-  ) -> flatbuffers::WIPOffset<Gameplay<'bldr>> {
-    let mut builder = GameplayBuilder::new(_fbb);
+    args: &'args PlayerMovedArgs<'args>
+  ) -> flatbuffers::WIPOffset<PlayerMoved<'bldr>> {
+    let mut builder = PlayerMovedBuilder::new(_fbb);
     if let Some(x) = args.player_position { builder.add_player_position(x); }
     if let Some(x) = args.player_controls { builder.add_player_controls(x); }
     builder.finish()
@@ -576,18 +667,18 @@ impl<'a> Gameplay<'a> {
     // Safety:
     // Created from valid Table for this object
     // which contains a valid value in this slot
-    unsafe { self._tab.get::<PlayerControl>(Gameplay::VT_PLAYER_CONTROLS, None)}
+    unsafe { self._tab.get::<PlayerControl>(PlayerMoved::VT_PLAYER_CONTROLS, None)}
   }
   #[inline]
   pub fn player_position(&self) -> Option<&'a Vec2> {
     // Safety:
     // Created from valid Table for this object
     // which contains a valid value in this slot
-    unsafe { self._tab.get::<Vec2>(Gameplay::VT_PLAYER_POSITION, None)}
+    unsafe { self._tab.get::<Vec2>(PlayerMoved::VT_PLAYER_POSITION, None)}
   }
 }
 
-impl flatbuffers::Verifiable for Gameplay<'_> {
+impl flatbuffers::Verifiable for PlayerMoved<'_> {
   #[inline]
   fn run_verifier(
     v: &mut flatbuffers::Verifier, pos: usize
@@ -600,53 +691,335 @@ impl flatbuffers::Verifiable for Gameplay<'_> {
     Ok(())
   }
 }
-pub struct GameplayArgs<'a> {
+pub struct PlayerMovedArgs<'a> {
     pub player_controls: Option<&'a PlayerControl>,
     pub player_position: Option<&'a Vec2>,
 }
-impl<'a> Default for GameplayArgs<'a> {
+impl<'a> Default for PlayerMovedArgs<'a> {
   #[inline]
   fn default() -> Self {
-    GameplayArgs {
+    PlayerMovedArgs {
       player_controls: None,
       player_position: None,
     }
   }
 }
 
-pub struct GameplayBuilder<'a: 'b, 'b> {
+pub struct PlayerMovedBuilder<'a: 'b, 'b> {
   fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
   start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
 }
-impl<'a: 'b, 'b> GameplayBuilder<'a, 'b> {
+impl<'a: 'b, 'b> PlayerMovedBuilder<'a, 'b> {
   #[inline]
   pub fn add_player_controls(&mut self, player_controls: &PlayerControl) {
-    self.fbb_.push_slot_always::<&PlayerControl>(Gameplay::VT_PLAYER_CONTROLS, player_controls);
+    self.fbb_.push_slot_always::<&PlayerControl>(PlayerMoved::VT_PLAYER_CONTROLS, player_controls);
   }
   #[inline]
   pub fn add_player_position(&mut self, player_position: &Vec2) {
-    self.fbb_.push_slot_always::<&Vec2>(Gameplay::VT_PLAYER_POSITION, player_position);
+    self.fbb_.push_slot_always::<&Vec2>(PlayerMoved::VT_PLAYER_POSITION, player_position);
   }
   #[inline]
-  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> GameplayBuilder<'a, 'b> {
+  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> PlayerMovedBuilder<'a, 'b> {
     let start = _fbb.start_table();
-    GameplayBuilder {
+    PlayerMovedBuilder {
       fbb_: _fbb,
       start_: start,
     }
   }
   #[inline]
-  pub fn finish(self) -> flatbuffers::WIPOffset<Gameplay<'a>> {
+  pub fn finish(self) -> flatbuffers::WIPOffset<PlayerMoved<'a>> {
     let o = self.fbb_.end_table(self.start_);
     flatbuffers::WIPOffset::new(o.value())
   }
 }
 
-impl core::fmt::Debug for Gameplay<'_> {
+impl core::fmt::Debug for PlayerMoved<'_> {
   fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-    let mut ds = f.debug_struct("Gameplay");
+    let mut ds = f.debug_struct("PlayerMoved");
       ds.field("player_controls", &self.player_controls());
       ds.field("player_position", &self.player_position());
+      ds.finish()
+  }
+}
+pub enum WeaponFiredOffset {}
+#[derive(Copy, Clone, PartialEq)]
+
+pub struct WeaponFired<'a> {
+  pub _tab: flatbuffers::Table<'a>,
+}
+
+impl<'a> flatbuffers::Follow<'a> for WeaponFired<'a> {
+  type Inner = WeaponFired<'a>;
+  #[inline]
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    Self { _tab: flatbuffers::Table::new(buf, loc) }
+  }
+}
+
+impl<'a> WeaponFired<'a> {
+  pub const VT_ANGLE: flatbuffers::VOffsetT = 4;
+  pub const VT_POWER: flatbuffers::VOffsetT = 6;
+
+  #[inline]
+  pub unsafe fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
+    WeaponFired { _tab: table }
+  }
+  #[allow(unused_mut)]
+  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
+    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+    args: &'args WeaponFiredArgs
+  ) -> flatbuffers::WIPOffset<WeaponFired<'bldr>> {
+    let mut builder = WeaponFiredBuilder::new(_fbb);
+    builder.add_power(args.power);
+    builder.add_angle(args.angle);
+    builder.finish()
+  }
+
+
+  #[inline]
+  pub fn angle(&self) -> f32 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<f32>(WeaponFired::VT_ANGLE, Some(0.0)).unwrap()}
+  }
+  #[inline]
+  pub fn power(&self) -> f32 {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<f32>(WeaponFired::VT_POWER, Some(0.0)).unwrap()}
+  }
+}
+
+impl flatbuffers::Verifiable for WeaponFired<'_> {
+  #[inline]
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
+    v.visit_table(pos)?
+     .visit_field::<f32>("angle", Self::VT_ANGLE, false)?
+     .visit_field::<f32>("power", Self::VT_POWER, false)?
+     .finish();
+    Ok(())
+  }
+}
+pub struct WeaponFiredArgs {
+    pub angle: f32,
+    pub power: f32,
+}
+impl<'a> Default for WeaponFiredArgs {
+  #[inline]
+  fn default() -> Self {
+    WeaponFiredArgs {
+      angle: 0.0,
+      power: 0.0,
+    }
+  }
+}
+
+pub struct WeaponFiredBuilder<'a: 'b, 'b> {
+  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
+  start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
+}
+impl<'a: 'b, 'b> WeaponFiredBuilder<'a, 'b> {
+  #[inline]
+  pub fn add_angle(&mut self, angle: f32) {
+    self.fbb_.push_slot::<f32>(WeaponFired::VT_ANGLE, angle, 0.0);
+  }
+  #[inline]
+  pub fn add_power(&mut self, power: f32) {
+    self.fbb_.push_slot::<f32>(WeaponFired::VT_POWER, power, 0.0);
+  }
+  #[inline]
+  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> WeaponFiredBuilder<'a, 'b> {
+    let start = _fbb.start_table();
+    WeaponFiredBuilder {
+      fbb_: _fbb,
+      start_: start,
+    }
+  }
+  #[inline]
+  pub fn finish(self) -> flatbuffers::WIPOffset<WeaponFired<'a>> {
+    let o = self.fbb_.end_table(self.start_);
+    flatbuffers::WIPOffset::new(o.value())
+  }
+}
+
+impl core::fmt::Debug for WeaponFired<'_> {
+  fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+    let mut ds = f.debug_struct("WeaponFired");
+      ds.field("angle", &self.angle());
+      ds.field("power", &self.power());
+      ds.finish()
+  }
+}
+pub enum GameRequestEventOffset {}
+#[derive(Copy, Clone, PartialEq)]
+
+pub struct GameRequestEvent<'a> {
+  pub _tab: flatbuffers::Table<'a>,
+}
+
+impl<'a> flatbuffers::Follow<'a> for GameRequestEvent<'a> {
+  type Inner = GameRequestEvent<'a>;
+  #[inline]
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    Self { _tab: flatbuffers::Table::new(buf, loc) }
+  }
+}
+
+impl<'a> GameRequestEvent<'a> {
+  pub const VT_MSG_TYPE: flatbuffers::VOffsetT = 4;
+  pub const VT_MSG: flatbuffers::VOffsetT = 6;
+
+  #[inline]
+  pub unsafe fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
+    GameRequestEvent { _tab: table }
+  }
+  #[allow(unused_mut)]
+  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
+    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
+    args: &'args GameRequestEventArgs
+  ) -> flatbuffers::WIPOffset<GameRequestEvent<'bldr>> {
+    let mut builder = GameRequestEventBuilder::new(_fbb);
+    if let Some(x) = args.msg { builder.add_msg(x); }
+    builder.add_msg_type(args.msg_type);
+    builder.finish()
+  }
+
+
+  #[inline]
+  pub fn msg_type(&self) -> RequestMessages {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<RequestMessages>(GameRequestEvent::VT_MSG_TYPE, Some(RequestMessages::NONE)).unwrap()}
+  }
+  #[inline]
+  pub fn msg(&self) -> Option<flatbuffers::Table<'a>> {
+    // Safety:
+    // Created from valid Table for this object
+    // which contains a valid value in this slot
+    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Table<'a>>>(GameRequestEvent::VT_MSG, None)}
+  }
+  #[inline]
+  #[allow(non_snake_case)]
+  pub fn msg_as_player_moved(&self) -> Option<PlayerMoved<'a>> {
+    if self.msg_type() == RequestMessages::PlayerMoved {
+      self.msg().map(|t| {
+       // Safety:
+       // Created from a valid Table for this object
+       // Which contains a valid union in this slot
+       unsafe { PlayerMoved::init_from_table(t) }
+     })
+    } else {
+      None
+    }
+  }
+
+  #[inline]
+  #[allow(non_snake_case)]
+  pub fn msg_as_weapon_fired(&self) -> Option<WeaponFired<'a>> {
+    if self.msg_type() == RequestMessages::WeaponFired {
+      self.msg().map(|t| {
+       // Safety:
+       // Created from a valid Table for this object
+       // Which contains a valid union in this slot
+       unsafe { WeaponFired::init_from_table(t) }
+     })
+    } else {
+      None
+    }
+  }
+
+}
+
+impl flatbuffers::Verifiable for GameRequestEvent<'_> {
+  #[inline]
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
+    v.visit_table(pos)?
+     .visit_union::<RequestMessages, _>("msg_type", Self::VT_MSG_TYPE, "msg", Self::VT_MSG, false, |key, v, pos| {
+        match key {
+          RequestMessages::PlayerMoved => v.verify_union_variant::<flatbuffers::ForwardsUOffset<PlayerMoved>>("RequestMessages::PlayerMoved", pos),
+          RequestMessages::WeaponFired => v.verify_union_variant::<flatbuffers::ForwardsUOffset<WeaponFired>>("RequestMessages::WeaponFired", pos),
+          _ => Ok(()),
+        }
+     })?
+     .finish();
+    Ok(())
+  }
+}
+pub struct GameRequestEventArgs {
+    pub msg_type: RequestMessages,
+    pub msg: Option<flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>>,
+}
+impl<'a> Default for GameRequestEventArgs {
+  #[inline]
+  fn default() -> Self {
+    GameRequestEventArgs {
+      msg_type: RequestMessages::NONE,
+      msg: None,
+    }
+  }
+}
+
+pub struct GameRequestEventBuilder<'a: 'b, 'b> {
+  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
+  start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
+}
+impl<'a: 'b, 'b> GameRequestEventBuilder<'a, 'b> {
+  #[inline]
+  pub fn add_msg_type(&mut self, msg_type: RequestMessages) {
+    self.fbb_.push_slot::<RequestMessages>(GameRequestEvent::VT_MSG_TYPE, msg_type, RequestMessages::NONE);
+  }
+  #[inline]
+  pub fn add_msg(&mut self, msg: flatbuffers::WIPOffset<flatbuffers::UnionWIPOffset>) {
+    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(GameRequestEvent::VT_MSG, msg);
+  }
+  #[inline]
+  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> GameRequestEventBuilder<'a, 'b> {
+    let start = _fbb.start_table();
+    GameRequestEventBuilder {
+      fbb_: _fbb,
+      start_: start,
+    }
+  }
+  #[inline]
+  pub fn finish(self) -> flatbuffers::WIPOffset<GameRequestEvent<'a>> {
+    let o = self.fbb_.end_table(self.start_);
+    flatbuffers::WIPOffset::new(o.value())
+  }
+}
+
+impl core::fmt::Debug for GameRequestEvent<'_> {
+  fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+    let mut ds = f.debug_struct("GameRequestEvent");
+      ds.field("msg_type", &self.msg_type());
+      match self.msg_type() {
+        RequestMessages::PlayerMoved => {
+          if let Some(x) = self.msg_as_player_moved() {
+            ds.field("msg", &x)
+          } else {
+            ds.field("msg", &"InvalidFlatbuffer: Union discriminant does not match value.")
+          }
+        },
+        RequestMessages::WeaponFired => {
+          if let Some(x) = self.msg_as_weapon_fired() {
+            ds.field("msg", &x)
+          } else {
+            ds.field("msg", &"InvalidFlatbuffer: Union discriminant does not match value.")
+          }
+        },
+        _ => {
+          let x: Option<()> = None;
+          ds.field("msg", &x)
+        },
+      };
       ds.finish()
   }
 }
@@ -1253,74 +1626,74 @@ impl core::fmt::Debug for GameReponseEvent<'_> {
   }
 }
 #[inline]
-/// Verifies that a buffer of bytes contains a `Gameplay`
+/// Verifies that a buffer of bytes contains a `GameRequestEvent`
 /// and returns it.
 /// Note that verification is still experimental and may not
 /// catch every error, or be maximally performant. For the
 /// previous, unchecked, behavior use
-/// `root_as_gameplay_unchecked`.
-pub fn root_as_gameplay(buf: &[u8]) -> Result<Gameplay, flatbuffers::InvalidFlatbuffer> {
-  flatbuffers::root::<Gameplay>(buf)
+/// `root_as_game_request_event_unchecked`.
+pub fn root_as_game_request_event(buf: &[u8]) -> Result<GameRequestEvent, flatbuffers::InvalidFlatbuffer> {
+  flatbuffers::root::<GameRequestEvent>(buf)
 }
 #[inline]
 /// Verifies that a buffer of bytes contains a size prefixed
-/// `Gameplay` and returns it.
+/// `GameRequestEvent` and returns it.
 /// Note that verification is still experimental and may not
 /// catch every error, or be maximally performant. For the
 /// previous, unchecked, behavior use
-/// `size_prefixed_root_as_gameplay_unchecked`.
-pub fn size_prefixed_root_as_gameplay(buf: &[u8]) -> Result<Gameplay, flatbuffers::InvalidFlatbuffer> {
-  flatbuffers::size_prefixed_root::<Gameplay>(buf)
+/// `size_prefixed_root_as_game_request_event_unchecked`.
+pub fn size_prefixed_root_as_game_request_event(buf: &[u8]) -> Result<GameRequestEvent, flatbuffers::InvalidFlatbuffer> {
+  flatbuffers::size_prefixed_root::<GameRequestEvent>(buf)
 }
 #[inline]
 /// Verifies, with the given options, that a buffer of bytes
-/// contains a `Gameplay` and returns it.
+/// contains a `GameRequestEvent` and returns it.
 /// Note that verification is still experimental and may not
 /// catch every error, or be maximally performant. For the
 /// previous, unchecked, behavior use
-/// `root_as_gameplay_unchecked`.
-pub fn root_as_gameplay_with_opts<'b, 'o>(
+/// `root_as_game_request_event_unchecked`.
+pub fn root_as_game_request_event_with_opts<'b, 'o>(
   opts: &'o flatbuffers::VerifierOptions,
   buf: &'b [u8],
-) -> Result<Gameplay<'b>, flatbuffers::InvalidFlatbuffer> {
-  flatbuffers::root_with_opts::<Gameplay<'b>>(opts, buf)
+) -> Result<GameRequestEvent<'b>, flatbuffers::InvalidFlatbuffer> {
+  flatbuffers::root_with_opts::<GameRequestEvent<'b>>(opts, buf)
 }
 #[inline]
 /// Verifies, with the given verifier options, that a buffer of
-/// bytes contains a size prefixed `Gameplay` and returns
+/// bytes contains a size prefixed `GameRequestEvent` and returns
 /// it. Note that verification is still experimental and may not
 /// catch every error, or be maximally performant. For the
 /// previous, unchecked, behavior use
-/// `root_as_gameplay_unchecked`.
-pub fn size_prefixed_root_as_gameplay_with_opts<'b, 'o>(
+/// `root_as_game_request_event_unchecked`.
+pub fn size_prefixed_root_as_game_request_event_with_opts<'b, 'o>(
   opts: &'o flatbuffers::VerifierOptions,
   buf: &'b [u8],
-) -> Result<Gameplay<'b>, flatbuffers::InvalidFlatbuffer> {
-  flatbuffers::size_prefixed_root_with_opts::<Gameplay<'b>>(opts, buf)
+) -> Result<GameRequestEvent<'b>, flatbuffers::InvalidFlatbuffer> {
+  flatbuffers::size_prefixed_root_with_opts::<GameRequestEvent<'b>>(opts, buf)
 }
 #[inline]
-/// Assumes, without verification, that a buffer of bytes contains a Gameplay and returns it.
+/// Assumes, without verification, that a buffer of bytes contains a GameRequestEvent and returns it.
 /// # Safety
-/// Callers must trust the given bytes do indeed contain a valid `Gameplay`.
-pub unsafe fn root_as_gameplay_unchecked(buf: &[u8]) -> Gameplay {
-  flatbuffers::root_unchecked::<Gameplay>(buf)
+/// Callers must trust the given bytes do indeed contain a valid `GameRequestEvent`.
+pub unsafe fn root_as_game_request_event_unchecked(buf: &[u8]) -> GameRequestEvent {
+  flatbuffers::root_unchecked::<GameRequestEvent>(buf)
 }
 #[inline]
-/// Assumes, without verification, that a buffer of bytes contains a size prefixed Gameplay and returns it.
+/// Assumes, without verification, that a buffer of bytes contains a size prefixed GameRequestEvent and returns it.
 /// # Safety
-/// Callers must trust the given bytes do indeed contain a valid size prefixed `Gameplay`.
-pub unsafe fn size_prefixed_root_as_gameplay_unchecked(buf: &[u8]) -> Gameplay {
-  flatbuffers::size_prefixed_root_unchecked::<Gameplay>(buf)
+/// Callers must trust the given bytes do indeed contain a valid size prefixed `GameRequestEvent`.
+pub unsafe fn size_prefixed_root_as_game_request_event_unchecked(buf: &[u8]) -> GameRequestEvent {
+  flatbuffers::size_prefixed_root_unchecked::<GameRequestEvent>(buf)
 }
 #[inline]
-pub fn finish_gameplay_buffer<'a, 'b>(
+pub fn finish_game_request_event_buffer<'a, 'b>(
     fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>,
-    root: flatbuffers::WIPOffset<Gameplay<'a>>) {
+    root: flatbuffers::WIPOffset<GameRequestEvent<'a>>) {
   fbb.finish(root, None);
 }
 
 #[inline]
-pub fn finish_size_prefixed_gameplay_buffer<'a, 'b>(fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>, root: flatbuffers::WIPOffset<Gameplay<'a>>) {
+pub fn finish_size_prefixed_game_request_event_buffer<'a, 'b>(fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>, root: flatbuffers::WIPOffset<GameRequestEvent<'a>>) {
   fbb.finish_size_prefixed(root, None);
 }
 }  // pub mod GameplayFBData

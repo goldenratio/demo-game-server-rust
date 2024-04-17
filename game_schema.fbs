@@ -17,9 +17,20 @@ struct PlayerData {
   player_position: Vec2;
 }
 
-table Gameplay {
+table PlayerMoved {
   player_controls: PlayerControl;
   player_position: Vec2;
+}
+
+table WeaponFired {
+  angle: float32;
+  power: float32;
+}
+
+union RequestMessages { PlayerMoved, WeaponFired }
+
+table GameRequestEvent {
+  msg: RequestMessages;
 }
 
 table RemotePeerJoined {
@@ -44,4 +55,4 @@ table GameReponseEvent {
   msg: ResponseMessage;
 }
 
-root_type Gameplay;
+root_type GameRequestEvent;
