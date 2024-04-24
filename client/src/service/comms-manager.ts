@@ -1,17 +1,19 @@
-import {Disposable, DisposeBag} from '../utils/dispose-bag';
-import {fromEvent, Observable, ReplaySubject, Subject} from 'rxjs';
-import {Builder, ByteBuffer} from 'flatbuffers';
+import { Disposable, DisposeBag } from '../utils/dispose-bag';
+import { fromEvent, Observable, ReplaySubject, Subject } from 'rxjs';
+import { Builder, ByteBuffer } from 'flatbuffers';
 import {
   GameReponseEvent,
   GameRequestEvent,
   GameWorldUpdate,
-  PlayerControl, PlayerMoved,
+  PlayerControl,
+  PlayerMoved,
   RemotePeerJoined,
   RemotePeerLeft,
   RemotePeerPositionUpdate,
   RequestMessages,
   ResponseMessage,
-  Vec2
+  Vec2,
+  WeaponFired
 } from '../gen/gameplay-fbdata';
 
 interface PeerPlayerUpdate {
@@ -188,7 +190,19 @@ export class CommsManager implements Disposable {
     this._socket.send(bytes);
   }
 
-  sendWeaponFired(): void {
-    //
+  sendWeaponFired(angle: number, power: number): void {
+    const builder = new Builder(0);
+    builder.clear();
+
+    WeaponFired.startWeaponFired(builder);
+    WeaponFired.addAngle(builder, angle);
+    WeaponFired.addPower(builder, power);
+    const msgOffset = WeaponFired.endWeaponFired(builder);
+
+    const offset = GameRequestEvent.createGameRequestEvent(builder, RequestMessages.WeaponFired, msgOffset);
+    builder.finish(offset);
+
+    const bytes = builder.asUint8Array();
+    this._socket.send(bytes);
   }
 }

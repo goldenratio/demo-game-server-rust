@@ -7,7 +7,7 @@ export class PlayerMovementSystem extends System {
 	private readonly _stageHeight: number;
   private readonly _service: CommsManager;
 
-  constructor(service: CommsManager, props = { width: 800, height: 600 }) {
+  constructor(service: CommsManager, props = { width: 1024, height: 600 }) {
 		super();
     this._service = service;
 		this._stageWidth = props.width;

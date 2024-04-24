@@ -12,7 +12,7 @@ import {
 import { CommsManager } from './service';
 
 const app = new Application({
-	width: 800,
+	width: 1024,
 	height: 600,
 	backgroundColor: 0x1099bb,
 	resolution: 1,

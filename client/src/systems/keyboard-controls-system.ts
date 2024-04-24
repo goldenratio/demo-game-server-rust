@@ -26,36 +26,36 @@ export class KeyboardControlsSystem extends System {
 			}
 
 			this._disposeBag.completable$(fromEvent(document, 'keydown')).subscribe((event: KeyboardEvent) => {
-				if (event.key === 'ArrowRight') {
+				if (event.key === 'ArrowRight' || event.key === 'd') {
 					keyboardControlsComponent.isRight = true;
 					keyboardControlsComponent.isLeft = false;
-				} else if (event.key === 'ArrowLeft') {
+				} else if (event.key === 'ArrowLeft' || event.key === 'a') {
 					keyboardControlsComponent.isRight = false;
 					keyboardControlsComponent.isLeft = true;
 				}
 
-				if (event.key === 'ArrowUp') {
+				if (event.key === 'ArrowUp' || event.key === 'w') {
 					keyboardControlsComponent.isUp = true;
 					keyboardControlsComponent.isDown = false;
-				} else if (event.key === 'ArrowDown') {
+				} else if (event.key === 'ArrowDown' || event.key === 's') {
 					keyboardControlsComponent.isUp = false;
 					keyboardControlsComponent.isDown = true;
 				}
 			});
 
 			this._disposeBag.completable$(fromEvent(document, 'keyup')).subscribe((event: KeyboardEvent) => {
-				if (event.key === 'ArrowRight') {
+				if (event.key === 'ArrowRight' || event.key === 'd') {
 					keyboardControlsComponent.isRight = false;
 					// keyboardControlsComponent.isLeft = false;
-				} else if (event.key === 'ArrowLeft') {
+				} else if (event.key === 'ArrowLeft' || event.key === 'a') {
 					// keyboardControlsComponent.isRight = false;
 					keyboardControlsComponent.isLeft = false;
 				}
 
-				if (event.key === 'ArrowUp') {
+				if (event.key === 'ArrowUp' || event.key === 'w') {
 					keyboardControlsComponent.isUp = false;
 					// keyboardControlsComponent.isDown = false;
-				} else if (event.key === 'ArrowDown') {
+				} else if (event.key === 'ArrowDown' || event.key === 's') {
 					// keyboardControlsComponent.isUp = false;
 					keyboardControlsComponent.isDown = false;
 				}
