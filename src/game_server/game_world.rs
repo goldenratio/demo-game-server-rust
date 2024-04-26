@@ -1,9 +1,8 @@
 use std::collections::HashMap;
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone)]
 pub struct PeerPlayerInfo {
     pub player_id: usize,
-    pub display_name: String,
     pub x: f32,
     pub y: f32
 }
@@ -28,7 +27,6 @@ impl Default for GameWorld {
 impl GameWorld {
     pub fn add_player(&mut self, player_id: usize) {
         let peer_data = PeerPlayerInfo {
-            display_name: "no_name".to_string(),
             player_id,
             x: 0.0,
             y: 0.0

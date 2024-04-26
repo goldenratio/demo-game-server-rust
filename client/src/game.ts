@@ -38,7 +38,7 @@ Assets.addBundle('assets', {
 const commsManager = new CommsManager();
 
 Assets.loadBundle('assets')
-	.then(() => firstValueFrom(commsManager.connected$))
+	// .then(() => firstValueFrom(commsManager.connected$))
 	.then(() => init());
 
 function init(): void {

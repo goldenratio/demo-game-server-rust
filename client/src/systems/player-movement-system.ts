@@ -62,10 +62,10 @@ export class PlayerMovementSystem extends System {
 
       if (positionComponent.y > stageHeight + offset) positionComponent.y = -offset;
 
-      this._service
-        .setPlayerPosition(positionComponent.x, positionComponent.y)
-        .setKeyPressed(keyboardControlsComponent.isUp, keyboardControlsComponent.isDown, keyboardControlsComponent.isLeft, keyboardControlsComponent.isRight)
-        .sendPlayerMoved();
+      // this._service
+      //   .setPlayerPosition(positionComponent.x, positionComponent.y)
+      //   .setKeyPressed(keyboardControlsComponent.isUp, keyboardControlsComponent.isDown, keyboardControlsComponent.isLeft, keyboardControlsComponent.isRight)
+      //   .sendPlayerMoved();
     }
 	}
 }
