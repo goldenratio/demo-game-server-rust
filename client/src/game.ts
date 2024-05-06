@@ -2,7 +2,13 @@ import { Application, Container, Assets, Sprite, Texture } from 'pixi.js';
 import { World, Entity } from 'super-ecs';
 import { firstValueFrom } from 'rxjs';
 
-import { PlayerComponent, PlayerControlsComponent, PositionComponent, SpriteComponent } from './components';
+import {
+  OpponentPlayerComponent,
+  PlayerComponent,
+  PlayerControlsComponent,
+  PositionComponent,
+  SpriteComponent
+} from './components';
 import {
   KeyboardControlsSystem,
   PlayerMovementSystem, OpponentPlayerSystem,
@@ -52,8 +58,11 @@ function init(): void {
 		.addSystem(new PlayerMovementSystem(commsManager))
 		.addSystem(new KeyboardControlsSystem());
 
-	const entity = createHeroEntity();
-	world.addEntity(entity);
+	const heroEntity = createHeroEntity();
+	world.addEntity(heroEntity);
+
+  const opponentEntity = createOpponentEntity();
+  world.addEntity(opponentEntity);
 
 	// game loop
 	app.ticker.add(deltaTime =>
@@ -68,8 +77,8 @@ function init(): void {
 
 function createHeroEntity(): Entity {
 	// const direction = Math.floor(Math.random() * 10) > 5 ? -1 : 1;
-	const x = Math.floor(Math.random() * 600);
-	const y = Math.floor(Math.random() * 400);
+	const x = 100; // Math.floor(Math.random() * 600);
+	const y = 440; // Math.floor(Math.random() * 400);
 	const textureName = 'p1'; // Math.floor(Math.random() * 10) > 5 ? 'p1' : 'p2';
 
 	const hero = new Entity();
@@ -84,4 +93,21 @@ function createHeroEntity(): Entity {
 		);
 
 	return hero;
+}
+
+function createOpponentEntity(): Entity {
+  const peer = new Entity();
+  const x = 860;
+  const y = 440;
+
+  peer
+    .addComponent(new PositionComponent({ x, y }))
+    .addComponent(new OpponentPlayerComponent({ playerId: '0' }))
+    .addComponent(
+      new SpriteComponent({
+        sprite: new Sprite(Texture.from('p2')),
+      })
+    );
+
+  return peer;
 }
