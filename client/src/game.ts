@@ -54,7 +54,7 @@ function init(): void {
 	world
 		.addSystem(new SpriteSystem(container))
 		.addSystem(new PositionSystem())
-    .addSystem(new OpponentPlayerSystem(commsManager))
+		.addSystem(new OpponentPlayerSystem(commsManager))
 		.addSystem(new PlayerMovementSystem(commsManager))
 		.addSystem(new KeyboardControlsSystem());
 
@@ -84,7 +84,7 @@ function createHeroEntity(): Entity {
 	const hero = new Entity();
 	hero
 		.addComponent(new PositionComponent({ x, y }))
-    .addComponent(new PlayerComponent())
+		.addComponent(new PlayerComponent())
 		.addComponent(new PlayerControlsComponent())
 		.addComponent(
 			new SpriteComponent({
